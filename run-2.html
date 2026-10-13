@@ -1,0 +1,2543 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Run — your rooms, no server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Tajawal:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+    <style>
+      :root{
+        color-scheme: light;
+        --bg:#f8fafd;
+        --surface:#ffffff;
+        --surface-2:#edf2f7;
+        --surface-3:#dfe7f0;
+        --ink:#191c20;
+        --ink-2:#44474e;
+        --ink-3:#74777f;
+        --line:#d9dee6;
+        --accent:#0b57d0;
+        --accent-strong:#0842a0;
+        --accent-soft:#d3e3fd;
+        --on-accent:#ffffff;
+        --amber:#7a5901;
+        --amber-soft:#f7e7bd;
+        --danger:#b3261e;
+        --danger-soft:#f9dedc;
+        --bubble-me:#0b57d0;
+        --bubble-me-ink:#ffffff;
+        --bubble-other:#edf2f7;
+        --snack-bg:#191c20;
+        --snack-ink:#f2f2f2;
+        --shadow:0 1px 2px rgba(25,28,32,.14),0 1px 6px rgba(25,28,32,.10);
+        --shadow-lg:0 4px 8px rgba(25,28,32,.16),0 8px 24px rgba(25,28,32,.14);
+        --radius:16px;
+      }
+      :root[data-theme="dark"]{
+        color-scheme: dark;
+        --bg:#0f1113;
+        --surface:#191c20;
+        --surface-2:#22262b;
+        --surface-3:#2e3339;
+        --ink:#e2e2e6;
+        --ink-2:#c4c7cf;
+        --ink-3:#8f9299;
+        --line:#33373d;
+        --accent:#a8c7fa;
+        --accent-strong:#d3e3fd;
+        --accent-soft:#004a77;
+        --on-accent:#0a305f;
+        --amber:#eac446;
+        --amber-soft:#4a3a08;
+        --danger:#f2b8b5;
+        --danger-soft:#410e0b;
+        --bubble-me:#004a77;
+        --bubble-me-ink:#d3e3fd;
+        --bubble-other:#22262b;
+        --snack-bg:#e2e2e6;
+        --snack-ink:#191c20;
+        --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 6px rgba(0,0,0,.4);
+        --shadow-lg:0 4px 8px rgba(0,0,0,.55),0 8px 24px rgba(0,0,0,.5);
+      }
+      @media (prefers-color-scheme: dark){
+        :root:not([data-theme="light"]){
+          color-scheme: dark;
+          --bg:#0f1113;
+          --surface:#191c20;
+          --surface-2:#22262b;
+          --surface-3:#2e3339;
+          --ink:#e2e2e6;
+          --ink-2:#c4c7cf;
+          --ink-3:#8f9299;
+          --line:#33373d;
+          --accent:#a8c7fa;
+          --accent-strong:#d3e3fd;
+          --accent-soft:#004a77;
+          --on-accent:#0a305f;
+          --amber:#eac446;
+          --amber-soft:#4a3a08;
+          --danger:#f2b8b5;
+          --danger-soft:#410e0b;
+          --bubble-me:#004a77;
+          --bubble-me-ink:#d3e3fd;
+          --bubble-other:#22262b;
+          --snack-bg:#e2e2e6;
+          --snack-ink:#191c20;
+          --shadow:0 1px 2px rgba(0,0,0,.5),0 1px 6px rgba(0,0,0,.4);
+          --shadow-lg:0 4px 8px rgba(0,0,0,.55),0 8px 24px rgba(0,0,0,.5);
+        }
+      }
+      *{box-sizing:border-box}
+      html{-webkit-text-size-adjust:100%}
+      body{
+        margin:0;background:var(--bg);color:var(--ink);
+        font-family:"Roboto","Tajawal",system-ui,-apple-system,"Segoe UI",sans-serif;
+        font-size:16px;line-height:1.5;
+      }
+      button{font-family:inherit;cursor:pointer;color:inherit}
+      input,textarea,select{font-family:inherit;font-size:16px;color:var(--ink)}
+      :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+      .wrap{max-width:860px;margin:0 auto;padding:8px 16px 110px}
+      .icon{width:22px;height:22px;flex:none}
+      .hidden{display:none !important}
+
+      /* ---------- app bar ---------- */
+      .appbar{position:sticky;top:0;z-index:40;background:var(--bg)}
+      .appbar-in{max-width:860px;margin:0 auto;padding:6px 8px;display:flex;align-items:center;gap:2px;min-height:56px}
+      .apptitle{font-size:21px;font-weight:500;margin:0;padding-inline-start:10px;flex:1;min-width:0;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .apptitle b{color:var(--accent);font-weight:700}
+      .appsub{padding:0 10px 6px;font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+      .appbar .col{flex:1;min-width:0}
+      .iconbtn{border:none;background:transparent;border-radius:50%;width:42px;height:42px;flex:none;
+        display:inline-flex;align-items:center;justify-content:center;color:var(--ink-2)}
+      .iconbtn:active{background:var(--surface-2)}
+      .iconbtn .icon{width:23px;height:23px}
+      html[dir="rtl"] #btn-back .icon{transform:scaleX(-1)}
+
+      /* ---------- buttons ---------- */
+      .btn{
+        border:none;background:var(--surface-2);color:var(--ink);
+        border-radius:999px;padding:10px 20px;font-size:14.5px;font-weight:500;
+        display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:42px;
+      }
+      .btn:active{filter:brightness(.96)}
+      .btn.primary{background:var(--accent);color:var(--on-accent)}
+      .btn.textbtn{background:transparent;color:var(--accent);padding:10px 14px}
+      .btn.danger{background:var(--danger);color:#fff}
+      .btn.textdanger{background:transparent;color:var(--danger)}
+      .btn:disabled{opacity:.5;cursor:not-allowed}
+      .btn .icon{width:19px;height:19px}
+      .fab{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));inset-inline-end:20px;z-index:45;
+        width:56px;height:56px;border:none;border-radius:18px;background:var(--accent);color:var(--on-accent);
+        box-shadow:var(--shadow-lg);display:flex;align-items:center;justify-content:center}
+      .fab .icon{width:26px;height:26px}
+      .fab:active{filter:brightness(.94)}
+
+      /* ---------- overflow menu ---------- */
+      .menu{position:fixed;z-index:90;background:var(--surface);border-radius:12px;box-shadow:var(--shadow-lg);
+        padding:6px;min-width:228px;max-width:calc(100vw - 24px);animation:tin .15s ease}
+      .menu.measuring{visibility:hidden}
+      .menu-item{display:flex;align-items:center;gap:13px;width:100%;border:none;background:transparent;
+        padding:11px 12px;border-radius:8px;font-size:15px;font-weight:400;color:var(--ink);text-align:start}
+      .menu-item:active{background:var(--surface-2)}
+      .menu-item .icon{width:21px;height:21px;color:var(--ink-2)}
+      .menu-item.danger{color:var(--danger)}
+      .menu-item.danger .icon{color:var(--danger)}
+
+      /* ---------- sections & room list ---------- */
+      .section-title{font-size:14px;font-weight:500;color:var(--ink-2);margin:22px 4px 6px;
+        display:flex;align-items:center;gap:8px;letter-spacing:.02em}
+      .section-title small{color:var(--ink-3);font-weight:400}
+      .roomlist{display:flex;flex-direction:column}
+      .roomrow{display:flex;align-items:center;gap:2px;border-radius:14px;padding:4px 2px}
+      .roomrow:active{background:var(--surface-2)}
+      .roomrow-main{flex:1;min-width:0;display:flex;align-items:center;gap:13px;border:none;background:transparent;
+        padding:9px 8px;text-align:start;border-radius:14px;color:var(--ink)}
+      .roomrow.archived .roomrow-main{opacity:.65}
+      .avatar{width:46px;height:46px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+        display:flex;align-items:center;justify-content:center;font-weight:500;font-size:19px;flex:none}
+      :root[data-theme="dark"] .avatar{color:var(--accent-strong)}
+      @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .avatar{color:var(--accent-strong)} }
+      .rr-text{flex:1;min-width:0}
+      .rr-text b{display:block;font-size:16px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rr-text small{display:block;color:var(--ink-3);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .rr-text small .code{font-family:"Space Mono",monospace;font-size:12.5px}
+      .chip{font-size:11.5px;font-weight:500;border-radius:7px;padding:2px 8px;background:var(--accent-soft);color:var(--accent);white-space:nowrap;flex:none}
+      :root[data-theme="dark"] .chip{color:var(--accent-strong)}
+      @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .chip{color:var(--accent-strong)} }
+      .chip.amber{background:var(--amber-soft);color:var(--amber)}
+      .empty{padding:52px 20px;text-align:center;color:var(--ink-3)}
+      .empty .icon{width:52px;height:52px;color:var(--surface-3);margin-bottom:8px}
+      .empty b{color:var(--ink-2);font-size:16px;font-weight:500;display:block}
+
+      /* ---------- room header ---------- */
+      .presence{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+      .presence .names{color:var(--ink-3)}
+      .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);display:inline-block;flex:none}
+      .dot.on{background:#34a853}
+      .coderow{display:flex;align-items:center;gap:4px;padding:0 10px 8px}
+      .coderow .code{font-family:"Space Mono",monospace;font-size:14px;letter-spacing:1px;color:var(--ink-2);direction:ltr}
+      .coderow .iconbtn{width:34px;height:34px}
+      .coderow .iconbtn .icon{width:18px;height:18px}
+      .archived-banner{background:var(--amber-soft);color:var(--amber);border-radius:12px;
+        padding:9px 8px 9px 14px;font-size:14px;margin:10px 0 0;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+      html[dir="rtl"] .archived-banner{padding:9px 14px 9px 8px}
+      .archived-banner span{flex:1}
+      .archived-banner .btn{min-height:36px;padding:6px 14px;background:transparent;color:var(--amber);border:1px solid var(--amber)}
+
+      /* ---------- tabs ---------- */
+      .tabs{display:flex;border-bottom:1px solid var(--line);margin:2px -8px 0;padding:0 8px}
+      .tabs button{flex:1;border:none;background:transparent;padding:12px 4px 10px;position:relative;
+        font-size:14.5px;font-weight:500;color:var(--ink-2)}
+      .tabs button.active{color:var(--accent)}
+      .tabs button.active::after{content:"";position:absolute;bottom:-1px;inset-inline:18%;
+        height:3px;border-radius:3px 3px 0 0;background:var(--accent)}
+      .tabs button .cnt{background:var(--accent);color:var(--on-accent);border-radius:999px;font-size:11px;
+        padding:0 6px;margin-inline-start:6px;vertical-align:2px}
+
+      /* ---------- chat ---------- */
+      .chatlog{display:flex;flex-direction:column;gap:4px;padding:16px 0 10px;min-height:200px}
+      .msg{max-width:85%;padding:9px 13px 7px;border-radius:20px;background:var(--bubble-other);color:var(--ink);
+        align-self:flex-start;border-end-start-radius:6px;word-break:break-word;position:relative;margin-top:4px}
+      .msg.me{align-self:flex-end;background:var(--bubble-me);color:var(--bubble-me-ink);
+        border-end-start-radius:20px;border-end-end-radius:6px}
+      .msg .author{font-size:12.5px;font-weight:500;color:var(--accent);margin-bottom:1px}
+      .msg.me .author{color:inherit;opacity:.85}
+      .msg .time{font-size:11px;opacity:.6;margin-top:3px;text-align:end}
+      .msg .text{white-space:pre-wrap}
+      .msg.system{align-self:center;background:var(--surface-2);color:var(--ink-2);font-size:12.5px;
+        padding:4px 12px;border-radius:999px;max-width:92%;text-align:center}
+      .filebox{display:flex;align-items:center;gap:10px;background:rgba(127,140,160,.14);border-radius:12px;padding:8px 10px;margin-top:6px}
+      .filebox .fi{width:38px;height:38px;border-radius:50%;background:var(--danger-soft);color:var(--danger);
+        display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10.5px;flex:none}
+      .filebox .fi.img{background:var(--accent-soft);color:var(--accent)}
+      .filebox .fn{flex:1;min-width:0}
+      .filebox .fn b{display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .filebox .fn small{opacity:.65;font-size:12px}
+      .filebox a.dl{color:var(--accent);display:inline-flex;padding:7px;border-radius:50%}
+      .msg.me .filebox a.dl{color:inherit}
+      .filebox a.dl .icon{width:21px;height:21px}
+      .filebox .nodl{font-size:12px;opacity:.65;padding-inline-end:4px}
+
+      /* ---------- composer (full width) ---------- */
+      .composer{position:fixed;left:0;right:0;bottom:0;z-index:35;background:var(--bg);
+        padding:6px 10px calc(8px + env(safe-area-inset-bottom))}
+      .composer-in{max-width:860px;margin:0 auto}
+      .composer .box{display:flex;gap:6px;align-items:flex-end}
+      .composer .field{flex:1;display:flex;align-items:flex-end;background:var(--surface-2);border-radius:26px;padding:3px 6px 3px 16px}
+      html[dir="rtl"] .composer .field{padding:3px 16px 3px 6px}
+      .composer textarea{flex:1;border:none;background:transparent;resize:none;max-height:110px;
+        padding:9px 0;outline:none;line-height:1.4}
+      .composer textarea::placeholder{color:var(--ink-3)}
+      .attachbtn{border:none;background:transparent;border-radius:50%;width:40px;height:40px;flex:none;
+        display:flex;align-items:center;justify-content:center;color:var(--ink-2)}
+      .attachbtn:active{background:var(--surface-3)}
+      .sendbtn{border:none;border-radius:50%;width:46px;height:46px;flex:none;background:var(--accent);color:var(--on-accent);
+        display:flex;align-items:center;justify-content:center}
+      .sendbtn .icon{width:21px;height:21px}
+      html[dir="rtl"] .sendbtn .icon{transform:scaleX(-1)}
+      .pendingfile{display:none;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);
+        border-radius:12px;padding:7px 8px 7px 13px;font-size:13.5px;font-weight:500;margin-bottom:7px}
+      html[dir="rtl"] .pendingfile{padding:7px 13px 7px 8px}
+      :root[data-theme="dark"] .pendingfile{color:var(--accent-strong)}
+      @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .pendingfile{color:var(--accent-strong)} }
+      .pendingfile.show{display:flex}
+      .pendingfile span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .pendingfile button{border:none;background:transparent;color:inherit;display:flex;padding:5px}
+
+      /* ---------- pinned ---------- */
+      .pinbtn{position:absolute;top:4px;inset-inline-end:4px;width:28px;height:28px;border:none;border-radius:50%;
+        background:transparent;color:var(--ink-3);display:flex;align-items:center;justify-content:center;
+        opacity:.45;transition:opacity .15s;padding:0}
+      .msg:hover .pinbtn,.msg:focus-within .pinbtn{opacity:.9}
+      .pinbtn svg{width:15px;height:15px}
+      .pinbtn.on{opacity:1;color:var(--amber)}
+      .msg.me .pinbtn{color:rgba(255,255,255,.7)}
+      .msg.me .pinbtn.on{color:#ffd58a}
+      @media (hover:none){.pinbtn{opacity:.5}.pinbtn.on{opacity:1}}
+      .msg.flash{animation:msgflash 1.8s ease}
+      @keyframes msgflash{0%,55%{box-shadow:0 0 0 3px var(--amber)}100%{box-shadow:none}}
+      .pinnedbar{background:var(--surface-2);border-radius:14px;padding:8px 10px;margin-top:12px}
+      .pinnedbar .phead{display:flex;align-items:center;gap:7px;font-weight:500;font-size:13px;color:var(--ink-2)}
+      .pinnedbar .phead svg{width:15px;height:15px;color:var(--amber)}
+      .pinnedbar .phead .cnt{background:var(--amber);color:#fff;border-radius:999px;font-size:11px;padding:0 7px}
+      .pinitem{display:flex;align-items:center;gap:9px;background:var(--surface);border-radius:10px;
+        padding:8px 11px;margin-top:6px;cursor:pointer;width:100%;color:var(--ink);border:none;text-align:start;font-size:14px}
+      .pinitem .pa{font-weight:500;font-size:13px;color:var(--accent);flex:none}
+      .pinitem .pt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+      .pinitem .unpin{border:none;background:transparent;color:var(--ink-3);border-radius:50%;width:30px;height:30px;
+        display:flex;align-items:center;justify-content:center;flex:none;padding:0}
+      .pinitem .unpin svg{width:16px;height:16px}
+
+      /* ---------- tasks ---------- */
+      .taskcard{display:flex;gap:6px;align-items:flex-start;background:var(--surface);border-radius:14px;
+        padding:10px 8px 10px 12px;margin-top:8px;box-shadow:var(--shadow)}
+      html[dir="rtl"] .taskcard{padding:10px 12px 10px 8px}
+      .taskcard .info{flex:1;min-width:0;padding-top:5px}
+      .taskcard .info b{font-size:15.5px;font-weight:500}
+      .taskcard .info p{margin:2px 0 0;color:var(--ink-2);font-size:14px;white-space:pre-wrap}
+      .taskcard .due{font-size:12.5px;color:var(--amber);font-weight:500;margin-top:4px}
+      .taskcard .by{font-size:12px;color:var(--ink-3);margin-top:3px}
+      .taskcard.done .info b,.taskcard.done .info p{text-decoration:line-through;opacity:.55}
+      .donebtn{border:1.8px solid var(--ink-3);background:transparent;border-radius:50%;
+        width:26px;height:26px;flex:none;display:flex;align-items:center;justify-content:center;color:transparent;margin-top:4px;padding:0}
+      .donebtn svg{width:16px;height:16px}
+      .donebtn.isdone{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+      .delbtn{border:none;background:transparent;color:var(--ink-3);border-radius:50%;width:34px;height:34px;
+        display:flex;align-items:center;justify-content:center;flex:none;padding:0}
+      .delbtn .icon{width:19px;height:19px}
+      .mini-form{margin-top:20px}
+      .mini-form h4{margin:0 0 10px;font-size:15px;font-weight:500}
+
+      /* ---------- fields & dialogs ---------- */
+      .field{margin-bottom:14px}
+      .field label{display:block;font-weight:500;font-size:13.5px;color:var(--ink-2);margin-bottom:6px}
+      .field input,.field select,.field textarea,.mini-form input,.mini-form textarea{
+        width:100%;border:none;background:var(--surface-2);border-radius:12px;padding:12px 14px;outline:none}
+      .field input:focus,.field select:focus,.field textarea:focus,.mini-form input:focus,.mini-form textarea:focus{
+        box-shadow:inset 0 0 0 2px var(--accent)}
+      .field input.codeinput{font-family:"Space Mono",monospace;direction:ltr;text-align:center;font-size:19px;letter-spacing:2px;text-transform:uppercase}
+      .mini-form textarea,.field textarea{resize:vertical;min-height:60px}
+      .mini-form input,.mini-form textarea{margin-bottom:9px}
+      .overlay{position:fixed;inset:0;background:rgba(10,12,16,.5);display:none;align-items:flex-end;justify-content:center;z-index:60}
+      .overlay.show{display:flex}
+      @media(min-width:640px){.overlay{align-items:center;padding:20px}}
+      .sheet{background:var(--surface);width:100%;max-width:460px;border-radius:28px 28px 0 0;
+        padding:24px 22px calc(20px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:tin .18s ease}
+      @media(min-width:640px){.sheet{border-radius:28px}}
+      .sheet h3{margin:0 0 16px;font-size:19px;font-weight:500}
+      .sheet .sub{color:var(--ink-2);font-size:14.5px;margin:-8px 0 16px}
+      .sheet .row{display:flex;gap:8px;margin-top:10px;justify-content:flex-end}
+      .profilerow{display:flex;align-items:center;gap:13px;margin-bottom:18px}
+      .profilerow input{flex:1;border:none;background:var(--surface-2);border-radius:12px;padding:12px 14px;outline:none;min-width:0}
+      .profilerow input:focus{box-shadow:inset 0 0 0 2px var(--accent)}
+      .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+      .seg button{flex:1;border:none;background:transparent;padding:9px 4px;font-size:14px;font-weight:500;color:var(--ink-2)}
+      .seg button + button{border-inline-start:1px solid var(--line)}
+      .seg button.active{background:var(--accent-soft);color:var(--accent)}
+      :root[data-theme="dark"] .seg button.active{color:var(--accent-strong)}
+      @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .seg button.active{color:var(--accent-strong)} }
+
+      /* ---------- snackbar ---------- */
+      #toasts{position:fixed;bottom:calc(96px + env(safe-area-inset-bottom));left:0;right:0;z-index:80;
+        display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
+      .toast{background:var(--snack-bg);color:var(--snack-ink);border-radius:12px;padding:12px 18px;
+        font-size:14px;box-shadow:var(--shadow-lg);animation:tin .25s ease;max-width:520px;text-align:center}
+      @keyframes tin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+      /* ---------- desktop ---------- */
+      @media (min-width:1024px){
+        .msg{max-width:70%}
+        .appbar-in{padding:8px}
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toasts" aria-live="polite"></div>
+
+    <!-- ================= HOME ================= -->
+    <div id="view-home">
+      <header class="appbar">
+        <div class="appbar-in">
+          <h1 class="apptitle"><b>Run</b></h1>
+          <button class="iconbtn" id="btn-theme" aria-label="Theme">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </button>
+          <button class="iconbtn" id="btn-menu-home" aria-label="More">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="wrap">
+        <h2 class="section-title"><span data-i18n="activeRooms">My active rooms</span> <small id="active-count"></small></h2>
+        <div class="roomlist" id="rooms-active"></div>
+        <div class="empty hidden" id="rooms-empty">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <b data-i18n="emptyActiveT">No rooms yet</b>
+        </div>
+
+        <h2 class="section-title"><span data-i18n="archiveTitle">Archive</span></h2>
+        <div class="roomlist" id="rooms-archived"></div>
+        <div class="empty hidden" id="archived-empty">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+          <b data-i18n="emptyArchT">Archive is empty</b>
+        </div>
+      </main>
+
+      <button class="fab" id="btn-create" aria-label="New room">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <input type="file" id="import-file" accept="application/json,.json" class="hidden" />
+    </div>
+
+    <!-- ================= ROOM ================= -->
+    <div id="view-room" class="hidden">
+      <header class="appbar">
+        <div class="appbar-in">
+          <button class="iconbtn" id="btn-back" aria-label="Back" data-i18n-aria="back">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+          </button>
+          <div class="col">
+            <h1 class="apptitle" id="room-title" style="padding:0">Room</h1>
+            <div class="presence">
+              <span class="dot" id="conn-dot"></span>
+              <span id="conn-text">Connecting…</span>
+              <span class="names" id="presence-names"></span>
+            </div>
+          </div>
+          <button class="iconbtn" id="btn-theme-room" aria-label="Theme">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </button>
+          <button class="iconbtn" id="btn-menu-room" aria-label="More">
+            <svg class="icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>
+          </button>
+        </div>
+        <div class="appbar-in" style="display:block;min-height:0;padding-top:0">
+          <div class="coderow">
+            <span class="code" id="room-code">RUN-000000</span>
+            <button class="iconbtn" id="btn-copy-code" aria-label="Copy code" data-i18n-aria="copyCode">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <div class="archived-banner hidden" id="archived-banner">
+            <span data-i18n="archivedBanner">This is a read-only archive copy.</span>
+            <button class="btn" id="btn-unarchive" data-i18n="unarchiveBtn">Reactivate room</button>
+          </div>
+          <div class="tabs" role="tablist">
+            <button data-tab="chat" class="active" data-i18n="tabChat">Chat</button>
+            <button data-tab="tasks"><span data-i18n="tabTasks">Tasks</span><span class="cnt hidden" id="cnt-tasks">0</span></button>
+          </div>
+        </div>
+      </header>
+
+      <main class="wrap">
+        <!-- chat pane -->
+        <section id="pane-chat">
+          <div class="pinnedbar hidden" id="pinned-bar">
+            <div class="phead">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 3h6l-1 7 3 3H7l3-7-1-7z"/></svg>
+              <span data-i18n="pinnedTitle">Pinned messages</span><span class="cnt" id="pinned-count">0</span>
+            </div>
+            <div id="pinned-list"></div>
+          </div>
+          <div class="chatlog" id="chatlog"></div>
+        </section>
+
+        <!-- tasks pane -->
+        <section id="pane-tasks" class="hidden">
+          <div id="task-list"></div>
+          <form class="mini-form" id="task-form">
+            <h4 data-i18n="taskFormTitle">Add a task</h4>
+            <input type="text" id="task-title" placeholder="Task title" maxlength="120" data-i18n-ph="taskTitlePh" />
+            <textarea id="task-desc" placeholder="Details (optional)" data-i18n-ph="taskDescPh"></textarea>
+            <input type="date" id="task-due" />
+            <button class="btn primary" type="submit" data-i18n="addTask" style="width:100%">Add task</button>
+          </form>
+        </section>
+      </main>
+
+      <div class="composer" id="composer">
+        <div class="composer-in">
+          <div class="pendingfile" id="pending-file">
+            <span id="pending-file-name"></span>
+            <button id="pending-file-clear" aria-label="Remove file" data-i18n-aria="removeFile">
+              <svg class="icon" style="width:17px;height:17px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="box">
+            <div class="field">
+              <textarea id="chat-input" rows="1" placeholder="Message" data-i18n-ph="chatPh"></textarea>
+              <button class="attachbtn" id="btn-attach" aria-label="Attach a file or PDF" data-i18n-aria="attach">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+            </div>
+            <input type="file" id="chat-file" class="hidden" />
+            <button class="sendbtn" id="btn-send" aria-label="Send" data-i18n-aria="send">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CREATE MODAL ================= -->
+    <div class="overlay" id="modal-create">
+      <div class="sheet">
+        <h3 data-i18n="createTitle">New room</h3>
+        <form id="create-form">
+          <div class="field">
+            <label for="create-name" data-i18n="roomNameLabel">Room name</label>
+            <input id="create-name" type="text" maxlength="60" placeholder="e.g. Maths revision group" required data-i18n-ph="roomNamePh" />
+          </div>
+          <div class="field">
+            <label for="create-purpose" data-i18n="purposeLabel">Purpose</label>
+            <select id="create-purpose">
+              <option value="study" data-i18n="purpose_study">Study</option>
+              <option value="work" data-i18n="purpose_work">Work</option>
+              <option value="friends" data-i18n="purpose_friends">Friends</option>
+              <option value="family" data-i18n="purpose_family">Family</option>
+              <option value="other" data-i18n="purpose_other">Other</option>
+            </select>
+          </div>
+          <div class="row">
+            <button type="button" class="btn textbtn" data-close data-i18n="cancel">Cancel</button>
+            <button type="submit" class="btn primary" data-i18n="createSubmit">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= JOIN MODAL ================= -->
+    <div class="overlay" id="modal-join">
+      <div class="sheet">
+        <h3 data-i18n="joinTitle">Join a room</h3>
+        <form id="join-form">
+          <div class="field">
+            <label for="join-code" data-i18n="joinCodeLabel">Room code</label>
+            <input id="join-code" class="codeinput" type="text" maxlength="12" placeholder="RUN-XXXXXX" required />
+          </div>
+          <div class="row">
+            <button type="button" class="btn textbtn" data-close data-i18n="cancel">Cancel</button>
+            <button type="submit" class="btn primary" data-i18n="joinSubmit">Join</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= SHARE WITH MUSE MODAL ================= -->
+    <div class="overlay" id="modal-share">
+      <div class="sheet">
+        <h3 data-i18n="shareTitle">Share with Muse</h3>
+        <div class="field">
+          <textarea id="share-text" readonly rows="12" dir="auto"></textarea>
+        </div>
+        <div class="row">
+          <button type="button" class="btn textbtn" data-close data-i18n="close">Close</button>
+          <button type="button" class="btn textbtn" id="btn-share-download" data-i18n="downloadTxt">Download .txt</button>
+          <button type="button" class="btn primary" id="btn-share-copy" data-i18n="copyText">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CONFIRM MODAL ================= -->
+    <div class="overlay" id="modal-confirm">
+      <div class="sheet">
+        <h3 id="confirm-title">Confirm</h3>
+        <p class="sub" id="confirm-text"></p>
+        <div class="row">
+          <button class="btn textbtn" data-close data-i18n="cancel">Cancel</button>
+          <button class="btn danger" id="confirm-yes" data-i18n="confirmYes">Yes, I'm sure</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SETTINGS MODAL ================= -->
+    <div class="overlay" id="modal-settings">
+      <div class="sheet">
+        <h3 data-i18n="settingsTitle">Settings</h3>
+        <div class="profilerow">
+          <div class="avatar" id="avatar-letter">?</div>
+          <input id="display-name" type="text" maxlength="30" placeholder="Your name" data-i18n-ph="namePh" />
+        </div>
+        <div class="field">
+          <label data-i18n="themeLabel">Theme</label>
+          <div class="seg" id="seg-theme">
+            <button type="button" data-theme-opt="auto" data-i18n="themeAuto">Auto</button>
+            <button type="button" data-theme-opt="light" data-i18n="themeLight">Light</button>
+            <button type="button" data-theme-opt="dark" data-i18n="themeDark">Dark</button>
+          </div>
+        </div>
+        <div class="field">
+          <label data-i18n="langLabel">Language</label>
+          <div class="seg" id="seg-lang">
+            <button type="button" data-lang-opt="en">English</button>
+            <button type="button" data-lang-opt="ar">العربية</button>
+            <button type="button" data-lang-opt="fr">Français</button>
+          </div>
+        </div>
+        <div class="row">
+          <button type="button" class="btn primary" data-close data-i18n="close">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    "use strict";
+    /* ============================================================
+       Run — غرف P2P بلا خادم خاص.
+       - التخزين الدائم: IndexedDB على جهاز المستخدم.
+       - الاتصال المباشر: PeerJS (وسيط إشارة عام مجاني) + WebRTC
+         لنقل البيانات من جهاز إلى جهاز مباشرة.
+       ============================================================ */
+
+    var $ = function (s) { return document.querySelector(s); };
+    var $$ = function (s) { return Array.prototype.slice.call(document.querySelectorAll(s)); };
+
+    function uid() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+    }
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function fmtTime(ts) {
+      var loc = LOCALES[state.lang] || "ar";
+      var d = new Date(ts);
+      var today = new Date();
+      var sameDay = d.toDateString() === today.toDateString();
+      var t = d.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" });
+      return sameDay ? t : d.toLocaleDateString(loc, { day: "numeric", month: "short" }) + " · " + t;
+    }
+    function fmtSize(n) {
+      if (n < 1024) return n + " " + t("sizeB");
+      if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " " + t("sizeKB");
+      return (n / (1024 * 1024)).toFixed(1) + " " + t("sizeMB");
+    }
+    var CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    function genCode() {
+      var s = "";
+      for (var i = 0; i < 6; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+      return "RUN-" + s;
+    }
+    function toast(text) {
+      var box = $("#toasts");
+      var el = document.createElement("div");
+      el.className = "toast";
+      el.textContent = text;
+      box.appendChild(el);
+      setTimeout(function () { el.style.opacity = "0"; el.style.transition = "opacity .3s"; }, 3400);
+      setTimeout(function () { el.remove(); }, 3800);
+    }
+    function notify(title, body) {
+      toast(title + (body ? " — " + body : ""));
+      try {
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(title, { body: body || "", icon: "data:," });
+        }
+      } catch (e) { /* الإشعارات غير متاحة في هذا السياق */ }
+    }
+
+    /* ---------------- الترجمة (عربي / فرنسي / إنجليزي) ---------------- */
+    var LOCALES = { ar: "ar", fr: "fr", en: "en" };
+    var I18N = {
+      ar: {
+        docTitle: "Run — غرفك، بلا خادم",
+        heroTitle: "— غرفك الخاصة، وجهًا لوجه",
+        heroDesc: "أنشئ غرفة لأي غرض — دراسة، عمل، أصدقاء، عائلة — وشارك كودها الدائم. تتصل الأجهزة ببعضها مباشرة (P2P) دون خادم، وكل محادثاتك وملفاتك محفوظة على جهازك.",
+        how1: "أنشئ غرفة", how2: "شارك الكود", how3: "تحدّثوا وتبادلوا الملفات",
+        profileTitle: "اسمك داخل الغرف",
+        profileHint: "يظهر للأعضاء عندما ترسل رسالة أو تنضم إلى غرفة",
+        namePh: "اكتب اسمك",
+        btnCreate: "إنشاء غرفة جديدة", btnJoin: "الانضمام بكود",
+        notifyOn: "تفعيل الإشعارات", notifyEnabled: "الإشعارات مفعّلة ✓",
+        btnExport: "تصدير نسخة احتياطية", btnImport: "استيراد نسخة", btnSettings: "الإعدادات",
+        themeDarkLbl: "الوضع الليلي", themeLightLbl: "الوضع الفاتح",
+        activeRooms: "غرفي النشطة",
+        emptyActiveT: "لا توجد غرف بعد",
+        emptyActiveB: "أنشئ أول غرفة لك وشارك كودها مع من تريد — أو انضم إلى غرفة صديق بكوده.",
+        archiveTitle: "الأرشيف",
+        archiveHint: "غرف غادرتها — نسخة للقراءة فقط، محفوظة على جهازك",
+        emptyArchT: "الأرشيف فارغ",
+        emptyArchB: "عندما تغادر غرفة، تجد نسختها هنا لتقرأ كل ما دار فيها متى شئت.",
+        footHtml: "الاتصال بين الأجهزة مباشر (Peer-to-Peer): عندما يكون منشئ الغرفة متصلًا، يستطيع الأعضاء الدخول بنفس الكود الدائم والتحدث فورًا.<br />كل البيانات — الرسائل والملفات والمهام — تُحفظ في قاعدة بيانات المتصفح (IndexedDB) على جهازك فقط، وتبقى بعد إغلاق التطبيق أو الهاتف. صدّر نسخة احتياطية من حين لآخر لحمايتها عند تغيير الجهاز أو مسح بيانات المتصفح.",
+        back: "رجوع", connecting: "جارٍ الاتصال…", copyCode: "نسخ الكود",
+        roomDefault: "الغرفة",
+        archivedBanner: "هذه نسخة أرشيف للقراءة فقط.",
+        unarchiveBtn: "إعادة تفعيل الغرفة بنفس الكود",
+        tabChat: "المحادثة", tabTasks: "المهام",
+        pinnedTitle: "الرسائل المثبتة", unpin: "إلغاء التثبيت", pin: "تثبيت الرسالة",
+        chatPh: "رسالة…",
+        attach: "إرفاق ملف أو PDF", send: "إرسال", removeFile: "إزالة الملف",
+        taskFormTitle: "إضافة مهمة / واجب",
+        taskTitlePh: "عنوان المهمة — مثال: مراجعة الدرس الثالث",
+        taskDescPh: "تفاصيل إضافية (اختياري)", addTask: "إضافة المهمة",
+        shareMuse: "مشاركة مع موس", copyInvite: "نسخ رابط الدعوة",
+        leaveRoom: "مغادرة الغرفة (نقلها إلى الأرشيف)", deleteRoom: "حذف الغرفة نهائيًا من جهازي",
+        createTitle: "إنشاء غرفة جديدة",
+        createSub: "ستحصل على كود مشاركة دائم — شاركه مع من تريد، ويبقى صالحًا للرجوع في أي وقت.",
+        roomNameLabel: "اسم الغرفة", roomNamePh: "مثال: مجموعة مراجعة الرياضيات",
+        purposeLabel: "غرض الغرفة",
+        purpose_study: "دراسة", purpose_work: "عمل", purpose_friends: "أصدقاء", purpose_family: "عائلة", purpose_other: "أخرى",
+        cancel: "إلغاء", createSubmit: "إنشاء والحصول على الكود",
+        joinTitle: "الانضمام إلى غرفة",
+        joinSub: "أدخل كود المشاركة الذي وصلك من منشئ الغرفة. الكود دائم: يمكنك الخروج والرجوع به متى شئت.",
+        joinCodeLabel: "كود الغرفة", joinSubmit: "دخول الغرفة",
+        shareTitle: "📤 مشاركة سجل الغرفة مع موس",
+        shareSub: "هذا هو سجل الغرفة كنص منسّق. انسخه والصقه في محادثتك مع موس، أو نزّله كملف ‎.txt‎ وأرفقه هناك — فيقرأ موس كل ما دار في الغرفة ويساعدك بناءً عليه.",
+        close: "إغلاق", downloadTxt: "تنزيل ‎.txt", copyText: "نسخ النص",
+        confirmYes: "نعم، متأكد",
+        settingsTitle: "الإعدادات",
+        settingsSub: "المظهر واللغة — يُحفظ اختيارك على جهازك ويُطبق فورًا.",
+        themeLabel: "المظهر", themeAuto: "تلقائي", themeLight: "فاتح", themeDark: "داكن",
+        langLabel: "اللغة",
+        defaultName: "مستخدم", guestName: "ضيف",
+        roleHostCard: "أنت المنشئ", roleGuestCard: "ضيف",
+        roomHost: "أنت منشئ الغرفة", roomGuest: "ضيف في الغرفة",
+        msgsSaved: "{n} رسالة محفوظة", lastActivity: "آخر نشاط: ",
+        openRoom: "دخول الغرفة", openArchive: "فتح الأرشيف",
+        copy: "نسخ", archiveAct: "أرشفة", reactivate: "إعادة التفعيل", deleteAct: "حذف",
+        chipArchived: "مؤرشفة — للقراءة فقط",
+        chatStart: "بداية الغرفة — اكتب أول رسالة، أو أرفق PDF أو ملفًا من زر المشبك.",
+        fileImg: "صورة", fileFile: "ملف", download: "تنزيل",
+        fileOnPeer: "الملف محفوظ على جهاز المرسل",
+        sizeB: "بايت", sizeKB: "ك.ب", sizeMB: "م.ب",
+        noTasksT: "لا مهام بعد", noTasksB: "أضف مهمة أو واجبًا وسيظهر هنا لكل الأعضاء.",
+        taskDoneLbl: "✓ منجزة", taskDoLbl: "إنجاز", taskDel: "حذف",
+        taskDue: "الموعد: ", taskBy: "أضافها ",
+        connHostOn: "أنت مضيف الغرفة — شارك الكود وسيصلك إشعار عند دخول أي عضو",
+        connConnected: "متصل بالغرفة — التحدث مباشرة مع الأعضاء",
+        connConnectedShort: "متصل بالغرفة", connMembers: "المتصلون: ",
+        connHostMembers: "أنت مضيف الغرفة — الأعضاء متصلون الآن",
+        connHostOffline: "المضيف غير متصل الآن — تعرض النسخة المحفوظة، وجرّب الرجوع عندما يكون متصلًا",
+        connPeerGone: "انقطع الاتصال بالمضيف — تعرض النسخة المحفوظة على جهازك",
+        connLibFail: "تعذّر تحميل مكتبة الاتصال — تعرض النسخة المحفوظة محليًا، وأعد المحاولة عند توفر الإنترنت",
+        connDupId: "الغرفة مفتوحة من جهاز آخر بنفس الكود — تعرض نسختك المحفوظة",
+        connErrPre: "حالة الاتصال: ", connErrSuf: " — المحادثة المحلية تعمل",
+        connUnsupported: "الاتصال المباشر غير متاح في هذا المتصفح — المحادثة المحلية تعمل",
+        connArchive: "وضع الأرشيف — لا اتصال، تعرض النسخة المحفوظة على جهازك",
+        connWaiting: "جارٍ الاتصال بالغرفة…",
+        connRetrying: "المضيف ليس متصلًا بعد — تُعاد المحاولة تلقائيًا كل بضع ثوانٍ، ابقَ في الغرفة وستتصل فور وصوله",
+        connReconnecting: "انقطع الاتصال — جارٍ إعادة الاتصال تلقائيًا…",
+        connHostRetry: "جارٍ إعادة تسجيل الغرفة لدى وسيط الاتصال…",
+        joinedRoom: "انضم {name} إلى الغرفة",
+        notifNewMember: "عضو جديد في ", notifJoinedNow: "{name} دخل الغرفة الآن",
+        notifNewMsg: "رسالة جديدة في ", notifNewTask: "مهمة جديدة في ",
+        toastNameSaved: "تم حفظ الاسم",
+        toastCodeInvalid: "صيغة الكود غير صحيحة — مثال: RUN-AB12CD",
+        toastRoomCreated: "تم إنشاء الغرفة — كودها الدائم: ",
+        toastArchived: "نُقلت الغرفة إلى الأرشيف — نسختها محفوظة للقراءة",
+        toastReactivated: "أُعيد تفعيل الغرفة — كودها نفسه يعمل من جديد",
+        toastReactivatedRoom: "أُعيد تفعيل الغرفة بنفس الكود",
+        confirmDeleteTitle: "حذف الغرفة نهائيًا؟",
+        confirmDeleteBody: "سيُحذف «{name}» وكل رسائلها وملفاتها ومهامها من هذا الجهاز فقط. هذا الإجراء لا يمكن التراجع عنه.",
+        confirmDeleteBodyShort: "سيُحذف «{name}» وكل محتواها من هذا الجهاز فقط. لا يمكن التراجع.",
+        toastDeleted: "تم حذف الغرفة من جهازك",
+        confirmLeaveTitle: "مغادرة الغرفة؟",
+        confirmLeaveBody: "ستنتقل «{name}» إلى الأرشيف: تبقى كل محادثاتها وملفاتها محفوظة على جهازك للقراءة، ويمكنك الرجوع إليها بنفس الكود في أي وقت.",
+        toastLeft: "غادرت الغرفة — نسختها في الأرشيف",
+        toastSynced: "تمت مزامنة {n} رسالة من المضيف",
+        toastBigFile: "الملف كبير (> 3 م.ب): حُفظ على جهازك وسيظهر اسمه للأعضاء دون نقل مباشر",
+        toastFileTooBig: "الملف أكبر من 30 م.ب — اختر ملفًا أصغر",
+        pendingFileTxt: "📎 {name} ({size}) — اضغط إرسال",
+        toastTaskTitleReq: "اكتب عنوان المهمة أولًا", toastTaskAdded: "أُضيفت المهمة",
+        toastExportOk: "تم تنزيل النسخة الاحتياطية — احتفظ بها في مكان آمن",
+        toastExportErr: "حدث خطأ أثناء التصدير",
+        toastNotBackup: "هذا الملف ليس نسخة احتياطية من Run",
+        toastImportOk: "تمت استعادة النسخة الاحتياطية بنجاح",
+        toastImportErr: "تعذّرت قراءة ملف النسخة الاحتياطية",
+        toastInviteCopied: "نُسخ رابط الدعوة — أرسله لمن تريد، وسيفتح له التطبيق على شاشة الانضمام بالكود جاهزًا",
+        toastInviteArrived: "وصلت عبر رابط دعوة — الكود جاهز، اضغط «دخول الغرفة» للانضمام",
+        toastCodeCopied: "نُسخ الكود: {code} — شاركه مع من تريد",
+        toastCodeFallback: "الكود: ",
+        toastShareCopied: "نُسخ سجل الغرفة — الصقه الآن في محادثتك مع موس",
+        toastSelectText: "حدّد النص يدويًا ثم انسخه",
+        toastShareDownloaded: "تم تنزيل سجل الغرفة — أرفقه في محادثتك مع موس",
+        toastNoNotify: "المتصفح لا يدعم الإشعارات",
+        toastNotifyOn: "تم تفعيل الإشعارات — ستصلك تنبيهات الدخول والرسائل",
+        toastNotifyDenied: "لم تُمنح الإشعارات الإذن",
+        toastStorageErr: "تعذّر فتح التخزين المحلي — تأكد أن المتصفح يسمح بـ IndexedDB (لا تستخدم التصفح الخفي)",
+        toastPinOn: "تم تثبيت الرسالة أعلى المحادثة", toastPinOff: "أُلغي تثبيت الرسالة",
+        shareHead: "سجل محادثة غرفة «{name}» — تطبيق Run",
+        shareCodeLine: "كود الغرفة: {code} · الغرض: {purpose}",
+        shareExportedAt: "صُدِّر هذا السجل في: ", shareMsgCount: "عدد الرسائل: ",
+        shareNoMsgs: "(لا توجد رسائل بعد في هذه الغرفة)",
+        shareAttached: "[أرفق ملفًا: {name} ({size})]", shareEmpty: "(رسالة فارغة)",
+        sharePinned: "📌 [مثبّتة] ", shareTasksHead: "مهام الغرفة:",
+        shareDue: "(الموعد: {due})", shareBy: " · أضافها ",
+        shareFoot: "نهاية السجل — شاركه مع موس ليقرأ ما دار في الغرفة ويساعدك.",
+        unknownAuthor: "مجهول", roomDefaultName: "غرفة {code}"
+      },
+      fr: {
+        docTitle: "Run — vos salons, sans serveur",
+        heroTitle: "— vos salons privés, face à face",
+        heroDesc: "Créez un salon pour n'importe quel usage — études, travail, amis, famille — et partagez son code permanent. Les appareils se connectent directement entre eux (P2P), sans serveur, et toutes vos conversations et fichiers restent sur votre appareil.",
+        how1: "Créez un salon", how2: "Partagez le code", how3: "Discutez et échangez des fichiers",
+        profileTitle: "Votre nom dans les salons",
+        profileHint: "Visible par les membres quand vous envoyez un message ou rejoignez un salon",
+        namePh: "Écrivez votre nom",
+        btnCreate: "Nouveau salon", btnJoin: "Rejoindre avec un code",
+        notifyOn: "Activer les notifications", notifyEnabled: "Notifications activées ✓",
+        btnExport: "Exporter une sauvegarde", btnImport: "Importer une sauvegarde", btnSettings: "Paramètres",
+        themeDarkLbl: "Mode sombre", themeLightLbl: "Mode clair",
+        activeRooms: "Mes salons actifs",
+        emptyActiveT: "Aucun salon pour le moment",
+        emptyActiveB: "Créez votre premier salon et partagez son code — ou rejoignez le salon d'un ami avec son code.",
+        archiveTitle: "Archives",
+        archiveHint: "Salons quittés — copie en lecture seule, gardée sur votre appareil",
+        emptyArchT: "Les archives sont vides",
+        emptyArchB: "Quand vous quittez un salon, sa copie reste ici pour relire tout ce qui s'y est dit.",
+        footHtml: "La connexion entre appareils est directe (peer-to-peer) : quand le créateur du salon est en ligne, les membres peuvent entrer avec le même code permanent et discuter aussitôt.<br />Toutes les données — messages, fichiers et tâches — sont stockées dans la base du navigateur (IndexedDB) sur votre appareil uniquement, et restent après la fermeture de l'app ou du téléphone. Exportez une sauvegarde de temps en temps pour les protéger si vous changez d'appareil ou effacez les données du navigateur.",
+        back: "Retour", connecting: "Connexion…", copyCode: "Copier le code",
+        roomDefault: "Salon",
+        archivedBanner: "Ceci est une copie d'archive en lecture seule.",
+        unarchiveBtn: "Réactiver le salon avec le même code",
+        tabChat: "Discussion", tabTasks: "Tâches",
+        pinnedTitle: "Messages épinglés", unpin: "Désépingler", pin: "Épingler le message",
+        chatPh: "Message…",
+        attach: "Joindre un fichier ou un PDF", send: "Envoyer", removeFile: "Retirer le fichier",
+        taskFormTitle: "Ajouter une tâche / un devoir",
+        taskTitlePh: "Titre de la tâche — ex. : réviser la leçon 3",
+        taskDescPh: "Détails supplémentaires (facultatif)", addTask: "Ajouter la tâche",
+        shareMuse: "Partager avec Muse", copyInvite: "Copier le lien d'invitation",
+        leaveRoom: "Quitter le salon (l'archiver)", deleteRoom: "Supprimer définitivement le salon de mon appareil",
+        createTitle: "Créer un nouveau salon",
+        createSub: "Vous obtiendrez un code de partage permanent — partagez-le avec qui vous voulez, il reste valable pour revenir à tout moment.",
+        roomNameLabel: "Nom du salon", roomNamePh: "Ex. : groupe de révision de maths",
+        purposeLabel: "But du salon",
+        purpose_study: "Études", purpose_work: "Travail", purpose_friends: "Amis", purpose_family: "Famille", purpose_other: "Autre",
+        cancel: "Annuler", createSubmit: "Créer et obtenir le code",
+        joinTitle: "Rejoindre un salon",
+        joinSub: "Entrez le code de partage reçu du créateur du salon. Le code est permanent : partez et revenez avec lui quand vous voulez.",
+        joinCodeLabel: "Code du salon", joinSubmit: "Entrer dans le salon",
+        shareTitle: "📤 Partager l'historique avec Muse",
+        shareSub: "Voici l'historique du salon en texte formaté. Copiez-le et collez-le dans votre conversation avec Muse, ou téléchargez-le en fichier .txt et joignez-le là-bas — Muse lira tout ce qui s'est passé dans le salon et vous aidera en conséquence.",
+        close: "Fermer", downloadTxt: "Télécharger le .txt", copyText: "Copier le texte",
+        confirmYes: "Oui, je suis sûr",
+        settingsTitle: "Paramètres",
+        settingsSub: "Apparence et langue — votre choix est gardé sur votre appareil et appliqué aussitôt.",
+        themeLabel: "Apparence", themeAuto: "Automatique", themeLight: "Clair", themeDark: "Sombre",
+        langLabel: "Langue",
+        defaultName: "Utilisateur", guestName: "Invité",
+        roleHostCard: "Vous êtes le créateur", roleGuestCard: "Invité",
+        roomHost: "Vous avez créé ce salon", roomGuest: "Invité dans ce salon",
+        msgsSaved: "{n} message(s) enregistré(s)", lastActivity: "Dernière activité : ",
+        openRoom: "Entrer dans le salon", openArchive: "Ouvrir l'archive",
+        copy: "Copier", archiveAct: "Archiver", reactivate: "Réactiver", deleteAct: "Supprimer",
+        chipArchived: "Archivé — lecture seule",
+        chatStart: "Début du salon — écrivez le premier message, ou joignez un PDF ou un fichier via le trombone.",
+        fileImg: "Image", fileFile: "Fichier", download: "Télécharger",
+        fileOnPeer: "Fichier gardé sur l'appareil de l'expéditeur",
+        sizeB: "octets", sizeKB: "Ko", sizeMB: "Mo",
+        noTasksT: "Aucune tâche pour le moment", noTasksB: "Ajoutez une tâche ou un devoir, il apparaîtra ici pour tous les membres.",
+        taskDoneLbl: "✓ Terminée", taskDoLbl: "Marquer faite", taskDel: "Supprimer",
+        taskDue: "Échéance : ", taskBy: "Ajoutée par ",
+        connHostOn: "Vous hébergez ce salon — partagez le code, vous serez notifié à chaque arrivée",
+        connConnected: "Connecté au salon — discutez directement avec les membres",
+        connConnectedShort: "Connecté au salon", connMembers: "En ligne : ",
+        connHostMembers: "Vous hébergez ce salon — les membres sont en ligne",
+        connHostOffline: "L'hôte est hors ligne — copie locale affichée, revenez quand il sera en ligne",
+        connPeerGone: "Connexion à l'hôte perdue — copie locale affichée",
+        connLibFail: "Bibliothèque de connexion introuvable — copie locale affichée, réessayez avec Internet",
+        connDupId: "Le salon est ouvert depuis un autre appareil avec ce code — copie locale affichée",
+        connErrPre: "État de la connexion : ", connErrSuf: " — la discussion locale fonctionne",
+        connUnsupported: "La connexion directe n'est pas disponible dans ce navigateur — la discussion locale fonctionne",
+        connArchive: "Mode archive — pas de connexion, copie locale affichée",
+        connWaiting: "Connexion au salon…",
+        connRetrying: "L'hôte n'est pas encore là — nouvelle tentative automatique toutes les quelques secondes, restez dans le salon",
+        connReconnecting: "Connexion perdue — reconnexion automatique…",
+        connHostRetry: "Réinscription du salon auprès du service de connexion…",
+        joinedRoom: "{name} a rejoint le salon",
+        notifNewMember: "Nouveau membre dans ", notifJoinedNow: "{name} vient d'entrer",
+        notifNewMsg: "Nouveau message dans ", notifNewTask: "Nouvelle tâche dans ",
+        toastNameSaved: "Nom enregistré",
+        toastCodeInvalid: "Format de code invalide — ex. : RUN-AB12CD",
+        toastRoomCreated: "Salon créé — son code permanent : ",
+        toastArchived: "Salon archivé — sa copie reste lisible",
+        toastReactivated: "Salon réactivé — le même code fonctionne à nouveau",
+        toastReactivatedRoom: "Salon réactivé avec le même code",
+        confirmDeleteTitle: "Supprimer définitivement le salon ?",
+        confirmDeleteBody: "« {name} » et tous ses messages, fichiers et tâches seront supprimés de cet appareil uniquement. Action irréversible.",
+        confirmDeleteBodyShort: "« {name} » et tout son contenu seront supprimés de cet appareil uniquement. Irréversible.",
+        toastDeleted: "Salon supprimé de votre appareil",
+        confirmLeaveTitle: "Quitter le salon ?",
+        confirmLeaveBody: "« {name} » passera aux archives : toutes ses discussions et fichiers restent sur votre appareil en lecture, et vous pourrez revenir avec le même code à tout moment.",
+        toastLeft: "Vous avez quitté le salon — sa copie est aux archives",
+        toastSynced: "{n} message(s) synchronisé(s) depuis l'hôte",
+        toastBigFile: "Fichier volumineux (> 3 Mo) : gardé sur votre appareil, seul son nom sera visible sans transfert direct",
+        toastFileTooBig: "Fichier de plus de 30 Mo — choisissez-en un plus petit",
+        pendingFileTxt: "📎 {name} ({size}) — appuyez sur Envoyer",
+        toastTaskTitleReq: "Écrivez d'abord le titre de la tâche", toastTaskAdded: "Tâche ajoutée",
+        toastExportOk: "Sauvegarde téléchargée — gardez-la en lieu sûr",
+        toastExportErr: "Erreur pendant l'export",
+        toastNotBackup: "Ce fichier n'est pas une sauvegarde Run",
+        toastImportOk: "Sauvegarde restaurée avec succès",
+        toastImportErr: "Impossible de lire le fichier de sauvegarde",
+        toastInviteCopied: "Lien d'invitation copié — envoyez-le, l'app s'ouvrira sur l'écran de participation avec le code prêt",
+        toastInviteArrived: "Vous arrivez via un lien d'invitation — le code est prêt, appuyez sur « Entrer dans le salon »",
+        toastCodeCopied: "Code copié : {code} — partagez-le avec qui vous voulez",
+        toastCodeFallback: "Code : ",
+        toastShareCopied: "Historique copié — collez-le dans votre conversation avec Muse",
+        toastSelectText: "Sélectionnez le texte manuellement puis copiez-le",
+        toastShareDownloaded: "Historique téléchargé — joignez-le à votre conversation avec Muse",
+        toastNoNotify: "Le navigateur ne prend pas en charge les notifications",
+        toastNotifyOn: "Notifications activées — vous recevrez les alertes d'arrivées et de messages",
+        toastNotifyDenied: "L'autorisation de notification n'a pas été accordée",
+        toastStorageErr: "Stockage local inaccessible — vérifiez qu'IndexedDB est autorisé (évitez la navigation privée)",
+        toastPinOn: "Message épinglé en haut de la discussion", toastPinOff: "Message désépinglé",
+        shareHead: "Historique du salon « {name} » — app Run",
+        shareCodeLine: "Code du salon : {code} · But : {purpose}",
+        shareExportedAt: "Exporté le : ", shareMsgCount: "Nombre de messages : ",
+        shareNoMsgs: "(Aucun message pour le moment dans ce salon)",
+        shareAttached: "[Fichier joint : {name} ({size})]", shareEmpty: "(Message vide)",
+        sharePinned: "📌 [Épinglé] ", shareTasksHead: "Tâches du salon :",
+        shareDue: "(Échéance : {due})", shareBy: " · Ajoutée par ",
+        shareFoot: "Fin de l'historique — partagez-le avec Muse pour qu'il lise ce qui s'est passé dans le salon et vous aide.",
+        unknownAuthor: "Inconnu", roomDefaultName: "Salon {code}"
+      },
+      en: {
+        docTitle: "Run — your rooms, no server",
+        heroTitle: "— your private rooms, face to face",
+        heroDesc: "Create a room for anything — study, work, friends, family — and share its permanent code. Devices connect directly to each other (P2P) with no server, and all your chats and files stay on your device.",
+        how1: "Create a room", how2: "Share the code", how3: "Chat and swap files",
+        profileTitle: "Your name in rooms",
+        profileHint: "Shown to members when you send a message or join a room",
+        namePh: "Type your name",
+        btnCreate: "Create a new room", btnJoin: "Join with a code",
+        notifyOn: "Enable notifications", notifyEnabled: "Notifications on ✓",
+        btnExport: "Export backup", btnImport: "Import backup", btnSettings: "Settings",
+        themeDarkLbl: "Dark mode", themeLightLbl: "Light mode",
+        activeRooms: "My active rooms",
+        emptyActiveT: "No rooms yet",
+        emptyActiveB: "Create your first room and share its code — or join a friend's room with their code.",
+        archiveTitle: "Archive",
+        archiveHint: "Rooms you left — read-only copy, kept on your device",
+        emptyArchT: "Archive is empty",
+        emptyArchB: "When you leave a room, its copy stays here so you can re-read everything anytime.",
+        footHtml: "Devices connect directly (peer-to-peer): when the room's creator is online, members can join with the same permanent code and chat right away.<br />All data — messages, files and tasks — is stored in the browser database (IndexedDB) on your device only, and stays after you close the app or the phone. Export a backup now and then to protect it when switching devices or clearing browser data.",
+        back: "Back", connecting: "Connecting…", copyCode: "Copy code",
+        roomDefault: "Room",
+        archivedBanner: "This is a read-only archive copy.",
+        unarchiveBtn: "Reactivate the room with the same code",
+        tabChat: "Chat", tabTasks: "Tasks",
+        pinnedTitle: "Pinned messages", unpin: "Unpin", pin: "Pin message",
+        chatPh: "Message",
+        attach: "Attach a file or PDF", send: "Send", removeFile: "Remove file",
+        taskFormTitle: "Add a task / assignment",
+        taskTitlePh: "Task title — e.g. review lesson 3",
+        taskDescPh: "Extra details (optional)", addTask: "Add task",
+        shareMuse: "Share with Muse", copyInvite: "Copy invite link",
+        leaveRoom: "Leave room (move to archive)", deleteRoom: "Delete room permanently from my device",
+        createTitle: "Create a new room",
+        createSub: "You'll get a permanent share code — share it with anyone; it stays valid for coming back anytime.",
+        roomNameLabel: "Room name", roomNamePh: "E.g. Maths revision group",
+        purposeLabel: "Room purpose",
+        purpose_study: "Study", purpose_work: "Work", purpose_friends: "Friends", purpose_family: "Family", purpose_other: "Other",
+        cancel: "Cancel", createSubmit: "Create & get the code",
+        joinTitle: "Join a room",
+        joinSub: "Enter the share code you got from the room's creator. The code is permanent: leave and come back with it anytime.",
+        joinCodeLabel: "Room code", joinSubmit: "Enter room",
+        shareTitle: "📤 Share room log with Muse",
+        shareSub: "This is the room log as formatted text. Copy it and paste it into your chat with Muse, or download it as a .txt file and attach it there — Muse will read everything that happened in the room and help you based on it.",
+        close: "Close", downloadTxt: "Download .txt", copyText: "Copy text",
+        confirmYes: "Yes, I'm sure",
+        settingsTitle: "Settings",
+        settingsSub: "Appearance and language — your choice is kept on your device and applied right away.",
+        themeLabel: "Appearance", themeAuto: "Auto", themeLight: "Light", themeDark: "Dark",
+        langLabel: "Language",
+        defaultName: "User", guestName: "Guest",
+        roleHostCard: "You're the creator", roleGuestCard: "Guest",
+        roomHost: "You created this room", roomGuest: "Guest in this room",
+        msgsSaved: "{n} saved messages", lastActivity: "Last activity: ",
+        openRoom: "Open room", openArchive: "Open archive",
+        copy: "Copy", archiveAct: "Archive", reactivate: "Reactivate", deleteAct: "Delete",
+        chipArchived: "Archived — read-only",
+        chatStart: "Start of the room — write the first message, or attach a PDF or file with the paperclip.",
+        fileImg: "Image", fileFile: "File", download: "Download",
+        fileOnPeer: "File kept on the sender's device",
+        sizeB: "bytes", sizeKB: "KB", sizeMB: "MB",
+        noTasksT: "No tasks yet", noTasksB: "Add a task or assignment and it will appear here for all members.",
+        taskDoneLbl: "✓ Done", taskDoLbl: "Mark done", taskDel: "Delete",
+        taskDue: "Due: ", taskBy: "Added by ",
+        connHostOn: "You're hosting this room — share the code and you'll be notified when someone joins",
+        connConnected: "Connected to the room — chatting directly with members",
+        connConnectedShort: "Connected to the room", connMembers: "Online: ",
+        connHostMembers: "You're hosting — members are online now",
+        connHostOffline: "The host is offline — showing your saved copy; come back when they're online",
+        connPeerGone: "Lost connection to the host — showing your saved copy",
+        connLibFail: "Couldn't load the connection library — showing the local copy; retry when online",
+        connDupId: "The room is open on another device with this code — showing your saved copy",
+        connErrPre: "Connection state: ", connErrSuf: " — local chat still works",
+        connUnsupported: "Direct connection isn't available in this browser — local chat still works",
+        connArchive: "Archive mode — no connection, showing your saved copy",
+        connWaiting: "Connecting to the room…",
+        connRetrying: "The host isn't here yet — retrying automatically every few seconds; stay in the room and you'll connect the moment they arrive",
+        connReconnecting: "Connection lost — reconnecting automatically…",
+        connHostRetry: "Re-registering the room with the connection service…",
+        joinedRoom: "{name} joined the room",
+        notifNewMember: "New member in ", notifJoinedNow: "{name} just joined",
+        notifNewMsg: "New message in ", notifNewTask: "New task in ",
+        toastNameSaved: "Name saved",
+        toastCodeInvalid: "Invalid code format — e.g. RUN-AB12CD",
+        toastRoomCreated: "Room created — its permanent code: ",
+        toastArchived: "Room moved to archive — its copy stays readable",
+        toastReactivated: "Room reactivated — the same code works again",
+        toastReactivatedRoom: "Room reactivated with the same code",
+        confirmDeleteTitle: "Delete the room permanently?",
+        confirmDeleteBody: "\"{name}\" and all its messages, files and tasks will be deleted from this device only. This can't be undone.",
+        confirmDeleteBodyShort: "\"{name}\" and all its content will be deleted from this device only. This can't be undone.",
+        toastDeleted: "Room deleted from your device",
+        confirmLeaveTitle: "Leave the room?",
+        confirmLeaveBody: "\"{name}\" will move to the archive: all its chats and files stay on your device for reading, and you can come back with the same code anytime.",
+        toastLeft: "You left the room — its copy is in the archive",
+        toastSynced: "Synced {n} messages from the host",
+        toastBigFile: "Large file (> 3 MB): kept on your device; members will see its name without a direct transfer",
+        toastFileTooBig: "File over 30 MB — pick a smaller one",
+        pendingFileTxt: "📎 {name} ({size}) — press Send",
+        toastTaskTitleReq: "Write the task title first", toastTaskAdded: "Task added",
+        toastExportOk: "Backup downloaded — keep it somewhere safe",
+        toastExportErr: "Something went wrong during export",
+        toastNotBackup: "This file isn't a Run backup",
+        toastImportOk: "Backup restored successfully",
+        toastImportErr: "Couldn't read the backup file",
+        toastInviteCopied: "Invite link copied — send it to anyone; the app will open on the join screen with the code ready",
+        toastInviteArrived: "You arrived via an invite link — the code is ready, press \"Enter room\" to join",
+        toastCodeCopied: "Code copied: {code} — share it with anyone",
+        toastCodeFallback: "Code: ",
+        toastShareCopied: "Room log copied — paste it into your chat with Muse",
+        toastSelectText: "Select the text manually, then copy it",
+        toastShareDownloaded: "Room log downloaded — attach it in your chat with Muse",
+        toastNoNotify: "This browser doesn't support notifications",
+        toastNotifyOn: "Notifications enabled — you'll get join and message alerts",
+        toastNotifyDenied: "Notification permission wasn't granted",
+        toastStorageErr: "Couldn't open local storage — make sure IndexedDB is allowed (avoid private browsing)",
+        toastPinOn: "Message pinned at the top of the chat", toastPinOff: "Message unpinned",
+        shareHead: "Chat log of room \"{name}\" — Run app",
+        shareCodeLine: "Room code: {code} · Purpose: {purpose}",
+        shareExportedAt: "Exported at: ", shareMsgCount: "Messages: ",
+        shareNoMsgs: "(No messages yet in this room)",
+        shareAttached: "[Attached a file: {name} ({size})]", shareEmpty: "(Empty message)",
+        sharePinned: "📌 [Pinned] ", shareTasksHead: "Room tasks:",
+        shareDue: "(Due: {due})", shareBy: " · Added by ",
+        shareFoot: "End of log — share it with Muse so he can read what happened in the room and help you.",
+        unknownAuthor: "Unknown", roomDefaultName: "Room {code}"
+      }
+    };
+    function t(key, vars) {
+      var s = (I18N[state.lang] && I18N[state.lang][key]) || I18N.ar[key] || key;
+      if (vars) Object.keys(vars).forEach(function (k) { s = s.split("{" + k + "}").join(String(vars[k])); });
+      return s;
+    }
+    var LEGACY_PURPOSE = { "دراسة": "study", "عمل": "work", "أصدقاء": "friends", "عائلة": "family", "أخرى": "other" };
+    function purposeLabel(p) {
+      if (!p) return t("purpose_other");
+      var key = LEGACY_PURPOSE[p] || p;
+      var k = "purpose_" + key;
+      return (I18N[state.lang] && I18N[state.lang][k]) || p;
+    }
+
+    /* ---------------- المظهر (فاتح/داكن) واللغة ---------------- */
+    function effectiveDark() {
+      if (state.theme === "dark") return true;
+      if (state.theme === "light") return false;
+      return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    }
+    function applyTheme() {
+      var root = document.documentElement;
+      if (state.theme === "auto") root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", state.theme);
+      updateThemeUI();
+    }
+    function updateThemeUI() {
+      $$("#seg-theme button").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-theme-opt") === state.theme);
+      });
+      var lbl = $("#theme-label");
+      if (lbl) lbl.textContent = effectiveDark() ? t("themeLightLbl") : t("themeDarkLbl");
+      var btn = $("#btn-theme");
+      if (btn) btn.setAttribute("aria-label", effectiveDark() ? t("themeLightLbl") : t("themeDarkLbl"));
+      var paths = effectiveDark()
+        ? '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2.5 12h2.2M19.3 12h2.2M6.5 17.5l-1.6 1.6M19.1 4.9l-1.6 1.6"/>'
+        : '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+      $$("#btn-theme svg, #btn-theme-room svg").forEach(function (s) { s.innerHTML = paths; });
+    }
+    function saveSettings() {
+      return idbPut("meta", { key: "settings", theme: state.theme, lang: state.lang });
+    }
+    function setTheme(theme) {
+      state.theme = theme;
+      applyTheme();
+      saveSettings();
+    }
+    function toggleTheme() {
+      setTheme(effectiveDark() ? "light" : "dark");
+    }
+    function applyLang() {
+      var root = document.documentElement;
+      root.lang = state.lang;
+      root.dir = state.lang === "ar" ? "rtl" : "ltr";
+      document.title = t("docTitle");
+      $$("[data-i18n]").forEach(function (el) { el.textContent = t(el.getAttribute("data-i18n")); });
+      $$("[data-i18n-html]").forEach(function (el) { el.innerHTML = t(el.getAttribute("data-i18n-html")); });
+      $$("[data-i18n-ph]").forEach(function (el) { el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph"))); });
+      $$("[data-i18n-aria]").forEach(function (el) { el.setAttribute("aria-label", t(el.getAttribute("data-i18n-aria"))); });
+      $$("#seg-lang button").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-lang-opt") === state.lang);
+      });
+      updateThemeUI();
+      updateNotifyLabel();
+      renderHome();
+      if (state.currentRoom) {
+        var room = state.currentRoom;
+        $("#room-title").textContent = room.name;
+        renderConn();
+        renderChat(true); renderTasks();
+      }
+    }
+    function setLang(lang) {
+      if (!I18N[lang]) return;
+      state.lang = lang;
+      applyLang();
+      saveSettings();
+    }
+
+    /* ---------------- حفظ حالة الجلسة (آخر غرفة + المسودات + التمرير) ---------------- */
+    function saveUI() {
+      idbPut("meta", {
+        key: "uistate",
+        lastRoomId: state.ui.lastRoomId,
+        lastTab: state.ui.lastTab,
+        drafts: state.ui.drafts,
+        scrolls: state.ui.scrolls
+      }).catch(function () {});
+    }
+    var saveUITimer = null;
+    function saveUIDebounced() {
+      if (saveUITimer) clearTimeout(saveUITimer);
+      saveUITimer = setTimeout(saveUI, 250);
+    }
+
+    /* ---------------- IndexedDB ---------------- */
+    var DB_NAME = "run-app-db", DB_VER = 1, db = null;
+    function openDB() {
+      return new Promise(function (resolve, reject) {
+        var req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = function () {
+          var d = req.result;
+          if (!d.objectStoreNames.contains("rooms")) d.createObjectStore("rooms", { keyPath: "id" });
+          if (!d.objectStoreNames.contains("messages")) {
+            var ms = d.createObjectStore("messages", { keyPath: "id" });
+            ms.createIndex("roomId", "roomId", { unique: false });
+          }
+          if (!d.objectStoreNames.contains("tasks")) {
+            var ts = d.createObjectStore("tasks", { keyPath: "id" });
+            ts.createIndex("roomId", "roomId", { unique: false });
+          }
+          if (!d.objectStoreNames.contains("files")) d.createObjectStore("files", { keyPath: "id" });
+          if (!d.objectStoreNames.contains("meta")) d.createObjectStore("meta", { keyPath: "key" });
+        };
+        req.onsuccess = function () { db = req.result; resolve(db); };
+        req.onerror = function () { reject(req.error); };
+      });
+    }
+    function tx(store, mode) { return db.transaction(store, mode).objectStore(store); }
+    function idbPut(store, val) {
+      return new Promise(function (res, rej) {
+        var r = tx(store, "readwrite").put(val);
+        r.onsuccess = function () { res(val); };
+        r.onerror = function () { rej(r.error); };
+      });
+    }
+    function idbGet(store, key) {
+      return new Promise(function (res, rej) {
+        var r = tx(store, "readonly").get(key);
+        r.onsuccess = function () { res(r.result || null); };
+        r.onerror = function () { rej(r.error); };
+      });
+    }
+    function idbAll(store) {
+      return new Promise(function (res, rej) {
+        var r = tx(store, "readonly").getAll();
+        r.onsuccess = function () { res(r.result || []); };
+        r.onerror = function () { rej(r.error); };
+      });
+    }
+    function idbDel(store, key) {
+      return new Promise(function (res, rej) {
+        var r = tx(store, "readwrite").delete(key);
+        r.onsuccess = function () { res(); };
+        r.onerror = function () { rej(r.error); };
+      });
+    }
+    function idbByRoom(store, roomId) {
+      return new Promise(function (res, rej) {
+        var out = [], idx = tx(store, "readonly").index("roomId");
+        var r = idx.openCursor(IDBKeyRange.only(roomId));
+        r.onsuccess = function () {
+          var c = r.result;
+          if (c) { out.push(c.value); c.continue(); } else res(out);
+        };
+        r.onerror = function () { rej(r.error); };
+      });
+    }
+    function blobToDataURL(blob) {
+      return new Promise(function (res, rej) {
+        var fr = new FileReader();
+        fr.onload = function () { res(fr.result); };
+        fr.onerror = function () { rej(fr.error); };
+        fr.readAsDataURL(blob);
+      });
+    }
+    function dataURLToBlob(durl) {
+      var parts = durl.split(","), mime = (parts[0].match(/:(.*?);/) || [])[1] || "application/octet-stream";
+      var bin = atob(parts[1]), arr = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+
+    /* ---------------- الحالة العامة ---------------- */
+    var state = {
+      myId: null,
+      myName: "مستخدم",
+      lang: "en",
+      theme: "auto",
+      ui: { lastRoomId: null, lastTab: "chat", drafts: {}, scrolls: {} },
+      conn: { status: "off", text: "", names: [] },
+      suppressAutoScroll: false,
+      rooms: [],
+      currentRoom: null,
+      currentTab: "chat",
+      messages: [],       // رسائل المحادثة للغرفة الحالية
+      tasks: [],
+      fileURLs: {},       // fileId -> objectURL
+      pendingFile: null,  // File قيد الإرفاق
+      peer: null,
+      conns: {},          // peerId -> DataConnection (للمضيف: كل الضيوف، للضيف: المضيف)
+      members: [],        // أسماء المتصلين حاليًا
+      isHostConn: false,
+      p2pStopped: true,   // true = لا غرفة مفتوحة / لا إعادة محاولة
+      p2pRoom: null,
+      p2pRetryTimer: null,
+      p2pAttemptTimer: null,
+      p2pAttempts: 0,
+      p2pIdTries: 0,
+      p2pConnectedOnce: false,
+      p2pGuestConn: null,
+      lastTaskSeen: 0
+    };
+
+    function myName() { return state.myName || t("defaultName"); }
+
+    /* ---------------- تحميل البيانات ---------------- */
+    function loadMeta() {
+      return Promise.all([
+        idbGet("meta", "profile"),
+        idbGet("meta", "settings"),
+        idbGet("meta", "uistate")
+      ]).then(function (res) {
+        var p = res[0], s = res[1], u = res[2];
+        if (s) {
+          if (s.theme === "light" || s.theme === "dark" || s.theme === "auto") state.theme = s.theme;
+          if (s.lang && I18N[s.lang]) state.lang = s.lang;
+        }
+        if (u) {
+          state.ui.lastRoomId = u.lastRoomId || null;
+          state.ui.lastTab = u.lastTab === "tasks" ? "tasks" : "chat";
+          state.ui.drafts = u.drafts || {};
+          state.ui.scrolls = u.scrolls || {};
+        }
+        if (p && p.myId) { state.myId = p.myId; state.myName = p.name || t("defaultName"); }
+        else {
+          state.myId = uid();
+          state.myName = t("defaultName");
+          return idbPut("meta", { key: "profile", myId: state.myId, name: state.myName });
+        }
+      }).then(function () {
+        var defaults = ["مستخدم", "Utilisateur", "User"];
+        $("#display-name").value = defaults.indexOf(state.myName) >= 0 ? "" : state.myName;
+        $("#avatar-letter").textContent = (state.myName || "؟").charAt(0);
+      });
+    }
+    function saveName(name) {
+      state.myName = name || t("defaultName");
+      $("#avatar-letter").textContent = state.myName.charAt(0);
+      return idbPut("meta", { key: "profile", myId: state.myId, name: state.myName });
+    }
+    function loadRooms() {
+      return idbAll("rooms").then(function (rooms) {
+        rooms.sort(function (a, b) { return (b.lastActivity || b.createdAt) - (a.lastActivity || a.createdAt); });
+        state.rooms = rooms;
+        renderHome();
+      });
+    }
+    function getRoom(id) {
+      for (var i = 0; i < state.rooms.length; i++) if (state.rooms[i].id === id) return state.rooms[i];
+      return null;
+    }
+    function touchRoom(room) {
+      room.lastActivity = Date.now();
+      return idbPut("rooms", room);
+    }
+
+    /* ---------------- الواجهة الرئيسية ---------------- */
+    function roomCard(room, counts) {
+      var archived = !!room.archived;
+      var meta = ['<span class="code">' + esc(room.code) + "</span>"];
+      if (counts[room.id]) meta.push(esc(t("msgsSaved", { n: counts[room.id] })));
+      if (room.lastActivity) meta.push(esc(t("lastActivity")) + esc(fmtTime(room.lastActivity)));
+      var chip = archived
+        ? '<span class="chip amber">' + esc(t("chipArchived")) + "</span>"
+        : '<span class="chip">' + esc(purposeLabel(room.purpose)) + "</span>";
+      return '<article class="roomrow' + (archived ? " archived" : "") + '">' +
+        '<button class="roomrow-main" data-act="open" data-id="' + room.id + '">' +
+          '<span class="avatar">' + esc((room.name || "?").charAt(0)) + "</span>" +
+          '<span class="rr-text"><b>' + esc(room.name) + "</b><small>" + meta.join(" · ") + "</small></span>" +
+          chip +
+        "</button>" +
+        '<button class="iconbtn" data-roommenu="' + room.id + '" aria-label="More">' + DOTS_SVG + "</button>" +
+      "</article>";
+    }
+    function renderHome() {
+      return idbAll("messages").then(function (allMsgs) {
+        var counts = {};
+        allMsgs.forEach(function (m) { counts[m.roomId] = (counts[m.roomId] || 0) + 1; });
+        var active = state.rooms.filter(function (r) { return !r.archived; });
+        var arch = state.rooms.filter(function (r) { return r.archived; });
+        $("#rooms-active").innerHTML = active.map(function (r) { return roomCard(r, counts); }).join("");
+        $("#rooms-archived").innerHTML = arch.map(function (r) { return roomCard(r, counts); }).join("");
+        $("#rooms-empty").classList.toggle("hidden", active.length > 0);
+        $("#archived-empty").classList.toggle("hidden", arch.length > 0);
+        $("#active-count").textContent = active.length ? "(" + active.length + ")" : "";
+      });
+    }
+
+    /* ---------------- إنشاء / انضمام / حذف ---------------- */
+    var confirmCb = null;
+    function askConfirm(title, text, cb) {
+      $("#confirm-title").textContent = title;
+      $("#confirm-text").textContent = text;
+      confirmCb = cb;
+      $("#modal-confirm").classList.add("show");
+    }
+    function uniqueCode() {
+      var existing = {};
+      state.rooms.forEach(function (r) { existing[r.code] = true; });
+      var c = genCode();
+      while (existing[c]) c = genCode();
+      return c;
+    }
+    function createRoom(name, purpose) {
+      var room = {
+        id: uid(), code: uniqueCode(), name: name, purpose: purpose,
+        role: "host", createdAt: Date.now(), lastActivity: Date.now(), archived: false
+      };
+      return idbPut("rooms", room).then(function () {
+        state.rooms.unshift(room);
+        renderHome();
+        return room;
+      });
+    }
+    function joinRoomByCode(code) {
+      code = (code || "").trim().toUpperCase();
+      if (!/^RUN-[A-Z0-9]{4,}$/.test(code)) { toast(t("toastCodeInvalid")); return Promise.resolve(null); }
+      for (var i = 0; i < state.rooms.length; i++) {
+        if (state.rooms[i].code === code) {
+          var found = state.rooms[i];
+          if (found.archived) found.archived = false;
+          return idbPut("rooms", found).then(function () { return found; });
+        }
+      }
+      var room = {
+        id: uid(), code: code, name: t("roomDefaultName", { code: code }), purpose: "other",
+        role: "guest", createdAt: Date.now(), lastActivity: Date.now(), archived: false,
+        nameKnown: false
+      };
+      return idbPut("rooms", room).then(function () {
+        state.rooms.unshift(room);
+        renderHome();
+        return room;
+      });
+    }
+    function deleteRoomEverywhere(room) {
+      var jobs = [];
+      ["messages", "tasks"].forEach(function (store) {
+        jobs.push(idbByRoom(store, room.id).then(function (rows) {
+          return Promise.all(rows.map(function (r) { return idbDel(store, r.id); }));
+        }));
+      });
+      jobs.push(idbAll("files").then(function (files) {
+        return Promise.all(files.filter(function (f) { return f.roomId === room.id; })
+          .map(function (f) { return idbDel("files", f.id); }));
+      }));
+      jobs.push(idbDel("rooms", room.id));
+      return Promise.all(jobs).then(function () {
+        state.rooms = state.rooms.filter(function (r) { return r.id !== room.id; });
+      });
+    }
+
+    /* ---------------- فتح الغرفة ---------------- */
+    function openRoom(room) {
+      state.currentRoom = room;
+      state.currentTab = state.ui.lastTab === "tasks" ? "tasks" : "chat";
+      state.messages = []; state.tasks = [];
+      Object.keys(state.fileURLs).forEach(function (k) { URL.revokeObjectURL(state.fileURLs[k]); });
+      state.fileURLs = {};
+      state.pendingFile = null;
+      $("#pending-file").classList.remove("show");
+
+      /* حفظ الحالة: هذه آخر غرفة مفتوحة */
+      state.ui.lastRoomId = room.id;
+      saveUI();
+
+      $("#view-home").classList.add("hidden");
+      $("#view-room").classList.remove("hidden");
+      $("#room-title").textContent = room.name;
+      $("#room-code").textContent = room.code;
+      $("#archived-banner").classList.toggle("hidden", !room.archived);
+      setReadOnly(!!room.archived);
+
+      /* استعادة مسودة الرسالة غير المرسلة */
+      var draft = state.ui.drafts[room.id] || "";
+      var input = $("#chat-input");
+      input.value = draft;
+      autoGrow(input);
+
+      /* استعادة موضع التمرير بدل القفز لأسفل المحادثة */
+      var savedScroll = state.ui.scrolls[room.id];
+      state.suppressAutoScroll = typeof savedScroll === "number";
+      switchTab(state.currentTab);
+      window.scrollTo(0, 0);
+
+      return Promise.all([
+        idbByRoom("messages", room.id),
+        idbByRoom("tasks", room.id)
+      ]).then(function (res) {
+        var msgs = res[0].sort(function (a, b) { return a.ts - b.ts; });
+        state.messages = msgs.filter(function (m) { return m.type !== "announcement"; });
+        state.tasks = res[1].sort(function (a, b) { return a.ts - b.ts; });
+        state.lastTaskSeen = state.tasks.length;
+        updateBadges();
+        renderChat(true); renderTasks();
+        return preloadFileURLs();
+      }).then(function () {
+        renderChat(true);
+        restoreScroll(room);
+        if (!room.archived) connectP2P(room);
+        else setConn("off", t("connArchive"));
+      });
+    }
+    function restoreScroll(room) {
+      var y = state.ui.scrolls[room.id];
+      requestAnimationFrame(function () {
+        if (typeof y === "number" && state.currentTab === "chat") window.scrollTo(0, y);
+        else if (state.currentTab === "chat") window.scrollTo(0, document.body.scrollHeight);
+        state.suppressAutoScroll = false;
+      });
+    }
+    function updateComposer() {
+      var ro = !!(state.currentRoom && state.currentRoom.archived);
+      $("#composer").classList.toggle("hidden", ro || state.currentTab !== "chat");
+    }
+    function setReadOnly(ro) {
+      updateComposer();
+      $("#task-form").classList.toggle("hidden", ro);
+      $$("#task-list .donebtn, #task-list .delbtn").forEach(function (b) { b.classList.toggle("hidden", ro); });
+    }
+    function closeRoom() {
+      disconnectP2P();
+      state.currentRoom = null;
+      state.ui.lastRoomId = null;
+      saveUI();
+      $("#view-room").classList.add("hidden");
+      $("#view-home").classList.remove("hidden");
+      loadRooms();
+      window.scrollTo(0, 0);
+    }
+    function preloadFileURLs() {
+      var ids = {};
+      state.messages.forEach(function (m) { if (m.fileId) ids[m.fileId] = true; });
+      var jobs = Object.keys(ids).map(function (fid) {
+        return idbGet("files", fid).then(function (f) {
+          if (f && f.blob) state.fileURLs[fid] = URL.createObjectURL(f.blob);
+        });
+      });
+      return Promise.all(jobs);
+    }
+
+    /* ---------------- التبويبات والشارات ---------------- */
+    function switchTab(tab) {
+      state.currentTab = tab;
+      state.ui.lastTab = tab;
+      saveUIDebounced();
+      $$(".tabs button").forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-tab") === tab); });
+      $("#pane-chat").classList.toggle("hidden", tab !== "chat");
+      $("#pane-tasks").classList.toggle("hidden", tab !== "tasks");
+      if (tab === "tasks") state.lastTaskSeen = state.tasks.length;
+      updateBadges();
+      updateComposer();
+      if (tab === "chat") scrollChat();
+    }
+    function updateBadges() {
+      var t = Math.max(0, state.tasks.length - state.lastTaskSeen);
+      var ct = $("#cnt-tasks");
+      ct.textContent = t; ct.classList.toggle("hidden", t === 0 || state.currentTab === "tasks");
+    }
+
+    /* ---------------- عرض المحادثة ---------------- */
+    function fileBoxHTML(m) {
+      if (!m.fileId) return "";
+      var isImg = (m.fileMime || "").indexOf("image/") === 0;
+      var isPdf = m.fileMime === "application/pdf" || /\.pdf$/i.test(m.fileName || "");
+      var tag = isPdf ? "PDF" : (isImg ? t("fileImg") : t("fileFile"));
+      var url = state.fileURLs[m.fileId];
+      var dl = url
+        ? '<a class="dl" href="' + url + '" download="' + esc(m.fileName || "file") + '" aria-label="' + esc(t("download")) + '">' + DL_SVG + "</a>"
+        : '<span class="nodl">' + esc(t("fileOnPeer")) + "</span>";
+      return '<div class="filebox"><div class="fi' + (isImg ? " img" : "") + '">' + tag + "</div>" +
+        '<div class="fn"><b>' + esc(m.fileName || t("fileFile")) + "</b><small>" + fmtSize(m.fileSize || 0) + "</small></div>" + dl + "</div>";
+    }
+    var PIN_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 3h6l-1 7 3 3H7l3-7-1-7z"/></svg>';
+    function renderChat(keepScroll) {
+      var log = $("#chatlog");
+      var prevY = window.scrollY;
+      var ro = !!(state.currentRoom && state.currentRoom.archived);
+      if (!state.messages.length) {
+        log.innerHTML = '<div class="msg system">' + esc(t("chatStart")) + "</div>";
+        renderPinned();
+        return;
+      }
+      log.innerHTML = state.messages.map(function (m) {
+        if (m.type === "system") return '<div class="msg system">' + esc(m.text) + "</div>";
+        var me = m.authorId === state.myId;
+        var pinBtn = ro ? "" :
+          '<button class="pinbtn' + (m.pinned ? " on" : "") + '" data-pin="' + m.id + '" aria-label="' + esc(m.pinned ? t("unpin") : t("pin")) + '" title="' + esc(m.pinned ? t("unpin") : t("pin")) + '">' + PIN_SVG + "</button>";
+        return '<div class="msg' + (me ? " me" : "") + '" id="msg-' + m.id + '">' +
+          pinBtn +
+          (me ? "" : '<div class="author">' + esc(m.author) + "</div>") +
+          (m.text ? '<div class="text">' + esc(m.text) + "</div>" : "") +
+          fileBoxHTML(m) +
+          '<div class="time">' + fmtTime(m.ts) + "</div></div>";
+      }).join("");
+      renderPinned();
+      if (keepScroll) window.scrollTo(0, prevY);
+      else scrollChat();
+    }
+    function renderPinned() {
+      var bar = $("#pinned-bar");
+      if (!bar) return;
+      var ro = !!(state.currentRoom && state.currentRoom.archived);
+      var pinned = state.messages.filter(function (m) { return m.pinned && m.type !== "system"; });
+      bar.classList.toggle("hidden", pinned.length === 0);
+      $("#pinned-count").textContent = pinned.length;
+      $("#pinned-list").innerHTML = pinned.map(function (m) {
+        var snippet = m.text ? m.text : (m.fileName ? "📎 " + m.fileName : "");
+        return '<div class="pinitem" data-jump="' + m.id + '" role="button" tabindex="0">' +
+          '<span class="pa">' + esc(m.author || "") + "</span>" +
+          '<span class="pt">' + esc(snippet) + "</span>" +
+          (ro ? "" : '<button class="unpin" data-unpin="' + m.id + '" aria-label="' + esc(t("unpin")) + '">' + CLOSE_SVG + "</button>") +
+          "</div>";
+      }).join("");
+    }
+    function jumpToMessage(id) {
+      var el = document.getElementById("msg-" + id);
+      if (!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.remove("flash");
+      void el.offsetWidth;
+      el.classList.add("flash");
+      setTimeout(function () { el.classList.remove("flash"); }, 1900);
+    }
+    function togglePin(msgId) {
+      var room = state.currentRoom;
+      if (!room || room.archived) return;
+      var msg = null;
+      state.messages.forEach(function (m) { if (m.id === msgId) msg = m; });
+      if (!msg) return;
+      msg.pinned = !msg.pinned;
+      idbPut("messages", msg);
+      emitEvent({ type: "pin", msgId: msg.id, pinned: !!msg.pinned });
+      renderChat(true);
+      toast(msg.pinned ? t("toastPinOn") : t("toastPinOff"));
+    }
+    function scrollChat() {
+      if (state.suppressAutoScroll) return;
+      requestAnimationFrame(function () { window.scrollTo(0, document.body.scrollHeight); });
+    }
+    function renderTasks() {
+      var box = $("#task-list");
+      var ro = state.currentRoom && state.currentRoom.archived;
+      if (!state.tasks.length) {
+        box.innerHTML = '<div class="empty" style="padding:34px 20px"><b>' + esc(t("noTasksT")) + "</b></div>";
+        return;
+      }
+      box.innerHTML = state.tasks.slice().reverse().map(function (tk) {
+        return '<article class="taskcard' + (tk.done ? " done" : "") + '">' +
+          (ro ? "" : '<button class="donebtn' + (tk.done ? " isdone" : "") + '" data-task="' + tk.id + '" aria-label="' + esc(t("taskDoLbl")) + '">' + CHECK_SVG + "</button>") +
+          '<div class="info"><b>' + esc(tk.title) + "</b>" +
+          (tk.desc ? "<p>" + esc(tk.desc) + "</p>" : "") +
+          (tk.due ? '<div class="due">' + esc(t("taskDue")) + esc(tk.due) + "</div>" : "") +
+          '<div class="by">' + esc(t("taskBy")) + esc(tk.author) + " · " + fmtTime(tk.ts) + "</div></div>" +
+          (ro ? "" : '<button class="delbtn" data-deltask="' + tk.id + '" aria-label="' + esc(t("taskDel")) + '">' + ICONS.trash + "</button>") +
+          "</article>";
+      }).join("");
+    }
+
+    /* ============================================================
+       طبقة P2P — PeerJS فوق WebRTC
+       كود الغرفة الدائم يتحول إلى معرّف مضيف ثابت: runroom-<code>
+       ============================================================ */
+    function hostPeerId(code) { return "runroom-" + code.replace(/^RUN-/, "").toLowerCase(); }
+    function setConn(status, text, names) {
+      state.conn = { status: status, text: text, names: names || [] };
+      renderConn();
+    }
+    function renderConn() {
+      var dot = $("#conn-dot");
+      if (!dot) return;
+      dot.className = "dot" + (state.conn.status === "on" ? " on" : "");
+      $("#conn-text").textContent = state.conn.text;
+      var names = state.conn.names;
+      $("#presence-names").textContent = names && names.length ? t("connMembers") + names.join("، ") : "";
+    }
+    function peerAvailable() { return typeof window.Peer === "function"; }
+
+    /* خوادم ICE: ‏STUN لاكتشاف العنوان العام + TURN لعبور الشبكات الصعبة —
+       هواتف الجوال خلف NAT متناظر/CGNAT لا تتصل مباشرة أبدًا بدون TURN،
+       وهذا كان سبب «دخلت ولا شيء».
+       تنبيه موثّق (2026): بيانات الاعتماد الثابتة القديمة لـ Open Relay
+       (openrelayproject/openrelayproject) أُلغيت وتُرفض عند المصادقة،
+       وسيرفرات TURN المجانية الافتراضية في PeerJS أُوقفت نهائيًا.
+       الحل: مخطط staticauth من Open Relay — بيانات اعتماد مؤقتة تُولَّد
+       داخل المتصفح نفسه (HMAC-SHA1 بسرّ مشترك موثّق علنًا من Metered)
+       بلا تسجيل وبلا خادم وسيط. */
+    var turnCredCache = null; // { exp, entry } — تُعاد توليدها قبل انتهائها
+    function mintOpenRelayTurn() {
+      var now = Math.floor(Date.now() / 1000);
+      if (turnCredCache && turnCredCache.exp - now > 300) return Promise.resolve(turnCredCache.entry);
+      if (!window.crypto || !crypto.subtle || !crypto.subtle.importKey) return Promise.resolve(null);
+      var expiry = now + 3600;
+      var username = expiry + ":run-chat";
+      var enc = new TextEncoder();
+      return crypto.subtle.importKey("raw", enc.encode("openrelayprojectsecret"), { name: "HMAC", hash: "SHA-1" }, false, ["sign"])
+        .then(function (key) { return crypto.subtle.sign("HMAC", key, enc.encode(username)); })
+        .then(function (sig) {
+          var bytes = new Uint8Array(sig), bin = "";
+          for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+          var entry = {
+            urls: [
+              "turn:staticauth.openrelay.metered.ca:3478?transport=udp",
+              "turn:staticauth.openrelay.metered.ca:3478?transport=tcp",
+              "turn:staticauth.openrelay.metered.ca:80?transport=tcp",
+              "turn:staticauth.openrelay.metered.ca:443?transport=tcp",
+              "turns:staticauth.openrelay.metered.ca:443?transport=tcp"
+            ],
+            username: username,
+            credential: btoa(bin)
+          };
+          turnCredCache = { exp: expiry, entry: entry };
+          return entry;
+        })
+        .catch(function () { return null; });
+    }
+    /* خيارات الـ Peer تُبنى بعد توليد بيانات TURN (عملية غير متزامنة)؛
+       عند تعذّر التوليد نكتفي بـ STUN بدل بيانات ميتة. */
+    function buildPeerOptions() {
+      return mintOpenRelayTurn().then(function (turn) {
+        var servers = [
+          { urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302", "stun:stun.cloudflare.com:3478"] },
+          { urls: "stun:stun.metered.ca:80" }
+        ];
+        if (turn) servers.push(turn);
+        return { debug: 0, config: { iceServers: servers, iceCandidatePoolSize: 10 } };
+      });
+    }
+    function clearP2PTimers() {
+      if (state.p2pRetryTimer) { clearTimeout(state.p2pRetryTimer); state.p2pRetryTimer = null; }
+      if (state.p2pAttemptTimer) { clearTimeout(state.p2pAttemptTimer); state.p2pAttemptTimer = null; }
+    }
+    function teardownPeer() {
+      /* رقم جيل: أي بدء Peer معلّق (بانتظار توليد TURN) يبطل إذا حدث هدم بعده */
+      state.p2pGen = (state.p2pGen || 0) + 1;
+      clearP2PTimers();
+      try { Object.keys(state.conns).forEach(function (k) { try { state.conns[k].close(); } catch (e) {} }); } catch (e) {}
+      state.conns = {};
+      try { if (state.peer) state.peer.destroy(); } catch (e) {}
+      state.peer = null;
+      state.p2pGuestConn = null;
+    }
+    function p2pBackoff() {
+      state.p2pAttempts = (state.p2pAttempts || 0) + 1;
+      return Math.min(15000, 1500 * state.p2pAttempts);
+    }
+    function p2pRoomLive(room) {
+      return !state.p2pStopped && state.currentRoom && state.currentRoom.id === room.id && !room.archived;
+    }
+    /* إعادة بناء الـ Peer كاملًا بعد مهلة متزايدة — تُستخدم عند موت وسيط
+       الإشارة أو فشل التسجيل، بدل الاستسلام النهائي كما كان يحدث. */
+    function scheduleP2PRestart(room, delay) {
+      if (!p2pRoomLive(room)) return;
+      if (state.p2pRetryTimer) clearTimeout(state.p2pRetryTimer);
+      state.p2pRetryTimer = setTimeout(function () {
+        state.p2pRetryTimer = null;
+        if (!p2pRoomLive(room)) return;
+        if (state.isHostConn) startHostPeer(room); else startGuestPeer(room);
+      }, typeof delay === "number" ? delay : p2pBackoff());
+    }
+    /* للضيف: إعادة محاولة الاتصال بالمضيف على نفس الـ Peer إن كان حيًا. */
+    function scheduleGuestAttempt(room) {
+      if (!p2pRoomLive(room)) return;
+      if (state.p2pRetryTimer) return;
+      state.p2pRetryTimer = setTimeout(function () {
+        state.p2pRetryTimer = null;
+        if (!p2pRoomLive(room)) return;
+        if (state.peer && !state.peer.destroyed && state.peer.open) attemptGuestConnect(room);
+        else startGuestPeer(room);
+      }, p2pBackoff());
+    }
+    function startHostPeer(room) {
+      teardownPeer();
+      var gen = state.p2pGen;
+      buildPeerOptions().then(function (opts) {
+        if (state.p2pGen !== gen || !p2pRoomLive(room) || !state.isHostConn) return;
+        var peer;
+        try { peer = new Peer(hostPeerId(room.code), opts); }
+        catch (e) { setConn("off", t("connUnsupported")); return; }
+        state.peer = peer;
+        wireHostPeer(peer, room);
+      });
+    }
+    function wireHostPeer(peer, room) {
+      peer.on("open", function () {
+        if (state.peer !== peer) return;
+        state.p2pAttempts = 0; state.p2pIdTries = 0;
+        state.members = [myName()];
+        setConn("on", t("connHostOn"), [myName()]);
+      });
+      peer.on("connection", function (conn) { wireConn(conn, room); });
+      peer.on("disconnected", function () {
+        if (state.peer !== peer || state.p2pStopped) return;
+        setConn("wait", t("connReconnecting"));
+        try { peer.reconnect(); } catch (e) { scheduleP2PRestart(room); }
+      });
+      peer.on("close", function () { if (state.peer === peer) scheduleP2PRestart(room); });
+      peer.on("error", function (err) {
+        if (state.peer !== peer || state.p2pStopped) return;
+        var type = err && err.type ? err.type : "error";
+        if (type === "unavailable-id") {
+          /* غالبًا تسجيل قديم لم ينتهِ بعد لدى الوسيط — أعد المحاولة قبل
+             إعلان أن الغرفة مفتوحة من جهاز آخر */
+          state.p2pIdTries = (state.p2pIdTries || 0) + 1;
+          if (state.p2pIdTries > 6) { setConn("off", t("connDupId")); return; }
+          setConn("wait", t("connHostRetry"));
+          scheduleP2PRestart(room, 4000);
+        } else if (type === "network" || type === "server-error" || type === "socket-error" || type === "socket-closed") {
+          setConn("wait", t("connReconnecting"));
+          scheduleP2PRestart(room);
+        } else {
+          setConn("off", t("connErrPre") + type + t("connErrSuf"));
+        }
+      });
+    }
+    function startGuestPeer(room) {
+      teardownPeer();
+      var gen = state.p2pGen;
+      buildPeerOptions().then(function (opts) {
+        if (state.p2pGen !== gen || !p2pRoomLive(room) || state.isHostConn) return;
+        var peer;
+        try { peer = new Peer("runguest-" + Math.random().toString(36).slice(2, 10), opts); }
+        catch (e) { setConn("off", t("connUnsupported")); return; }
+        state.peer = peer;
+        wireGuestPeer(peer, room);
+      });
+    }
+    function wireGuestPeer(peer, room) {
+      peer.on("open", function () { if (state.peer === peer) attemptGuestConnect(room); });
+      peer.on("disconnected", function () {
+        if (state.peer !== peer || state.p2pStopped) return;
+        setConn("wait", t("connReconnecting"));
+        try { peer.reconnect(); } catch (e) { scheduleP2PRestart(room); }
+      });
+      peer.on("close", function () { if (state.peer === peer) scheduleP2PRestart(room); });
+      peer.on("error", function (err) {
+        if (state.peer !== peer || state.p2pStopped) return;
+        var type = err && err.type ? err.type : "error";
+        if (type === "peer-unavailable") {
+          /* المضيف غير مسجّل (بعد) — حالة عادية وليست خطأ نهائيًا:
+             واصل المحاولة حتى يدخل المضيف الغرفة */
+          setConn("wait", t("connRetrying"));
+          scheduleGuestAttempt(room);
+        } else if (type === "network" || type === "server-error" || type === "socket-error" || type === "socket-closed") {
+          setConn("wait", t("connReconnecting"));
+          scheduleP2PRestart(room);
+        } else if (type !== "browser-incompatible" && type !== "invalid-id") {
+          setConn("wait", t("connRetrying"));
+          scheduleGuestAttempt(room);
+        } else {
+          setConn("off", t("connErrPre") + type + t("connErrSuf"));
+        }
+      });
+    }
+    function attemptGuestConnect(room) {
+      var peer = state.peer;
+      if (!peer || peer.destroyed || state.p2pStopped) return;
+      var existing = state.p2pGuestConn;
+      if (existing && existing.open) return;
+      if (existing) { try { existing.close(); } catch (e) {} state.p2pGuestConn = null; }
+      if (state.p2pAttemptTimer) { clearTimeout(state.p2pAttemptTimer); state.p2pAttemptTimer = null; }
+      var conn;
+      try { conn = peer.connect(hostPeerId(room.code), { reliable: true }); }
+      catch (e) { scheduleGuestAttempt(room); return; }
+      state.p2pGuestConn = conn;
+      wireConn(conn, room);
+      /* مهلة المحاولة: فشل ICE (NAT صعب) قد لا يُطلق أي حدث — لا ننتظر للأبد */
+      state.p2pAttemptTimer = setTimeout(function () {
+        state.p2pAttemptTimer = null;
+        if (!conn.open) {
+          try { conn.close(); } catch (e) {}
+          if (state.p2pGuestConn === conn) state.p2pGuestConn = null;
+          if (!p2pRoomLive(room)) return;
+          setConn("wait", state.p2pConnectedOnce ? t("connReconnecting") : t("connRetrying"));
+          scheduleGuestAttempt(room);
+        }
+      }, 15000);
+    }
+    /* إعادة محاولة فورية: عودة الشبكة، عودة التبويب للمقدمة، أو نقر شريط الحالة */
+    function retryP2PNow() {
+      var room = state.currentRoom;
+      if (!room || room.archived || state.p2pStopped || !peerAvailable()) return;
+      var anyOpen = false;
+      Object.keys(state.conns).forEach(function (k) { if (state.conns[k].open) anyOpen = true; });
+      if (anyOpen) return;
+      state.p2pAttempts = 0;
+      setConn("wait", t("connWaiting"));
+      if (state.isHostConn) {
+        if (state.peer && !state.peer.destroyed && state.peer.disconnected) {
+          try { state.peer.reconnect(); return; } catch (e) {}
+        }
+        if (state.peer && !state.peer.destroyed && state.peer.open) return;
+        startHostPeer(room);
+      } else {
+        if (state.peer && !state.peer.destroyed && state.peer.open) attemptGuestConnect(room);
+        else startGuestPeer(room);
+      }
+    }
+    function connectP2P(room) {
+      disconnectP2P();
+      state.p2pStopped = false;
+      state.p2pRoom = room;
+      state.p2pAttempts = 0;
+      state.p2pIdTries = 0;
+      state.p2pConnectedOnce = false;
+      if (!peerAvailable()) {
+        setConn("off", t("connLibFail"));
+        return;
+      }
+      setConn("wait", t("connWaiting"));
+      state.isHostConn = room.role === "host";
+      if (state.isHostConn) startHostPeer(room);
+      else startGuestPeer(room);
+    }
+    function disconnectP2P() {
+      state.p2pStopped = true;
+      state.p2pRoom = null;
+      teardownPeer();
+      state.members = [];
+    }
+    function broadcast(payload, exceptPeerId) {
+      Object.keys(state.conns).forEach(function (pid) {
+        if (pid === exceptPeerId) return;
+        var c = state.conns[pid];
+        if (c && c.open) { try { c.send(payload); } catch (e) {} }
+      });
+    }
+    function sendToHost(payload) {
+      Object.keys(state.conns).forEach(function (pid) {
+        var c = state.conns[pid];
+        if (c && c.open) { try { c.send(payload); } catch (e) {} }
+      });
+    }
+    function wireConn(conn, room) {
+      conn.on("open", function () {
+        state.conns[conn.peer] = conn;
+        clearP2PTimers();
+        state.p2pAttempts = 0;
+        state.p2pConnectedOnce = true;
+        if (!state.isHostConn) {
+          try { conn.send({ kind: "hello", name: myName(), authorId: state.myId }); } catch (e) {}
+          setConn("on", t("connConnected"), []);
+        }
+      });
+      conn.on("data", function (data) { handleP2P(data, conn, room); });
+      /* فشل ICE = ‏NAT لا يُعبَر حتى عبر TURN: أغلق وحاول من جديد */
+      conn.on("iceStateChanged", function (iceState) {
+        if (iceState === "failed" || iceState === "closed") {
+          try { conn.close(); } catch (e) {}
+        }
+      });
+      conn.on("close", function () {
+        var wasGuestConn = !state.isHostConn && state.p2pGuestConn === conn;
+        delete state.conns[conn.peer];
+        if (state.p2pGuestConn === conn) state.p2pGuestConn = null;
+        if (state.p2pAttemptTimer) { clearTimeout(state.p2pAttemptTimer); state.p2pAttemptTimer = null; }
+        if (state.isHostConn) broadcastPresence(room);
+        else if (wasGuestConn && p2pRoomLive(room)) {
+          setConn("wait", state.p2pConnectedOnce ? t("connReconnecting") : t("connRetrying"));
+          scheduleGuestAttempt(room);
+        }
+      });
+      conn.on("error", function () {
+        if (state.isHostConn || state.p2pStopped) return;
+        if (!conn.open && state.p2pGuestConn === conn && p2pRoomLive(room)) {
+          setConn("wait", t("connRetrying"));
+          scheduleGuestAttempt(room);
+        }
+      });
+    }
+    function broadcastPresence(room) {
+      var names = [myName()];
+      Object.keys(state.conns).forEach(function (pid) {
+        var c = state.conns[pid];
+        if (c && c.metadata && c.metadata.rname) names.push(c.metadata.rname);
+      });
+      state.members = names;
+      if (names.length > 1) setConn("on", t("connHostMembers"), names);
+      else setConn("on", t("connHostOn"), names);
+      broadcast({ kind: "presence", members: names });
+    }
+    function roomSnapshot() {
+      return {
+        name: state.currentRoom.name, purpose: state.currentRoom.purpose,
+        messages: state.messages.slice().sort(function (a, b) { return a.ts - b.ts; })
+          .map(function (m) { var c = Object.assign({}, m); delete c.fileData; return c; }),
+        tasks: state.tasks
+      };
+    }
+    function handleP2P(data, conn, room) {
+      if (!data || !data.kind) return;
+      if (state.isHostConn && data.kind === "hello") {
+        conn.metadata = conn.metadata || {};
+        conn.metadata.rname = data.name || t("guestName");
+        var sys = { id: uid(), roomId: room.id, type: "system", author: "", authorId: "", text: t("joinedRoom", { name: data.name || t("guestName") }), ts: Date.now() };
+        saveMessage(sys, true);
+        broadcast({ kind: "event", event: { type: "system", msg: sys } }, conn.peer);
+        notify(t("notifNewMember") + room.name, t("notifJoinedNow", { name: data.name || t("guestName") }));
+        conn.send({ kind: "sync", snapshot: roomSnapshot() });
+        broadcastPresence(room);
+        return;
+      }
+      if (!state.isHostConn && data.kind === "sync" && data.snapshot) {
+        var snapIds = {}, snapTaskIds = {};
+        (data.snapshot.messages || []).forEach(function (m) { snapIds[m.id] = true; });
+        (data.snapshot.tasks || []).forEach(function (tk) { snapTaskIds[tk.id] = true; });
+        applySync(data.snapshot, room).then(function () {
+          /* رسائل/مهام كتبها الضيف أثناء انقطاع الاتصال محفوظة عنده فقط
+             ولم تصل المضيف أبدًا — ادفعها إليه الآن بعد عودة الاتصال */
+          state.messages.forEach(function (m) {
+            if (!snapIds[m.id] && m.type === "chat") {
+              sendToHost({ kind: "event", event: { type: "chat", msg: m } });
+            }
+          });
+          state.tasks.forEach(function (tk) {
+            if (!snapTaskIds[tk.id]) {
+              sendToHost({ kind: "event", event: { type: "task-add", task: tk } });
+            }
+          });
+        });
+        return;
+      }
+      if (!state.isHostConn && data.kind === "presence") {
+        state.members = data.members || [];
+        setConn("on", t("connConnectedShort"), data.members || []);
+        return;
+      }
+      if (data.kind === "event" && data.event) {
+        applyEvent(data.event, room);
+        if (state.isHostConn) broadcast(data, conn.peer);
+        return;
+      }
+      if (data.kind === "file" && data.file) {
+        var f = data.file;
+        var blob = f.data ? dataURLToBlob(f.data) : null;
+        if (blob) idbPut("files", { id: f.id, roomId: room.id, name: f.name, mime: f.mime, size: f.size, blob: blob })
+          .then(function () { state.fileURLs[f.id] = URL.createObjectURL(blob); renderChat(); });
+        return;
+      }
+    }
+    function applySync(snap, room) {
+      var changed = false;
+      if (snap.name && room.name !== snap.name) {
+        room.name = snap.name; room.nameKnown = true;
+        $("#room-title").textContent = snap.name;
+        idbPut("rooms", room); changed = true;
+      }
+      var known = {};
+      state.messages.forEach(function (m) { known[m.id] = m; });
+      var incoming = (snap.messages || []).filter(function (m) { return !known[m.id] && m.roomId === room.id; });
+      var jobs = incoming.map(function (m) { return idbPut("messages", m); });
+      /* دمج حالة التثبيت للرسائل المعروفة مسبقًا */
+      (snap.messages || []).forEach(function (m) {
+        var local = known[m.id];
+        if (local && !!local.pinned !== !!m.pinned) {
+          local.pinned = !!m.pinned;
+          jobs.push(idbPut("messages", local));
+        }
+      });
+      var knownT = {};
+      state.tasks.forEach(function (t) { knownT[t.id] = true; });
+      var incomingT = (snap.tasks || []).filter(function (t) { return !knownT[t.id]; });
+      incomingT.forEach(function (t) { jobs.push(idbPut("tasks", t)); });
+      return Promise.all(jobs).then(function () {
+        incoming.forEach(function (m) {
+          if (m.type !== "announcement") state.messages.push(m);
+        });
+        state.messages.sort(function (a, b) { return a.ts - b.ts; });
+        incomingT.forEach(function (t) { state.tasks.push(t); });
+        state.tasks.sort(function (a, b) { return a.ts - b.ts; });
+        // طلب أي ملفات ناقصة عبر رسائل لاحقة: يعرض الاسم والحجم حتى تصل
+        renderChat(true); renderTasks(); updateBadges();
+        if (incoming.length) toast(t("toastSynced", { n: incoming.length }));
+        if (changed) loadRooms();
+      });
+    }
+    function applyEvent(ev, room) {
+      if (!state.currentRoom || state.currentRoom.id !== room.id) return;
+      if (ev.type === "chat" && ev.msg) {
+        saveMessage(ev.msg, true);
+        if (ev.msg.authorId !== state.myId) notify(t("notifNewMsg") + room.name, (ev.msg.author || "") + ": " + (ev.msg.text || ev.msg.fileName || t("fileFile")));
+      } else if (ev.type === "system" && ev.msg) {
+        saveMessage(ev.msg, true);
+      } else if (ev.type === "pin" && ev.msgId) {
+        state.messages.forEach(function (m) {
+          if (m.id === ev.msgId) { m.pinned = !!ev.pinned; idbPut("messages", m); }
+        });
+        renderChat(true);
+      } else if (ev.type === "task-add" && ev.task) {
+        state.tasks.push(ev.task);
+        idbPut("tasks", ev.task);
+        renderTasks(); updateBadges();
+        if (ev.task.authorId !== state.myId) notify(t("notifNewTask") + room.name, ev.task.title);
+      } else if (ev.type === "task-toggle" && ev.taskId) {
+        state.tasks.forEach(function (t) { if (t.id === ev.taskId) { t.done = ev.done; idbPut("tasks", t); } });
+        renderTasks();
+      } else if (ev.type === "task-del" && ev.taskId) {
+        state.tasks = state.tasks.filter(function (t) { return t.id !== ev.taskId; });
+        idbDel("tasks", ev.taskId);
+        renderTasks();
+      }
+    }
+
+    /* ---------------- الإرسال والحفظ ---------------- */
+    function saveMessage(m, fromRemote) {
+      if (!state.currentRoom) return Promise.resolve();
+      var exists = state.messages.some(function (x) { return x.id === m.id; });
+      if (!exists) {
+        state.messages.push(m);
+        state.messages.sort(function (a, b) { return a.ts - b.ts; });
+      }
+      return idbPut("messages", m).then(function () {
+        renderChat();
+        if (state.currentRoom) touchRoom(state.currentRoom);
+      });
+    }
+    function emitEvent(ev) {
+      var payload = { kind: "event", event: ev };
+      if (state.isHostConn) broadcast(payload);
+      else sendToHost(payload);
+    }
+    function sendChat() {
+      var room = state.currentRoom;
+      if (!room || room.archived) return;
+      var text = $("#chat-input").value.trim();
+      var file = state.pendingFile;
+      if (!text && !file) return;
+      $("#chat-input").value = "";
+      autoGrow($("#chat-input"));
+      if (state.ui.drafts[room.id]) { delete state.ui.drafts[room.id]; saveUI(); }
+
+      function finish(msg, fileRec) {
+        saveMessage(msg, false).then(function () {
+          emitEvent({ type: "chat", msg: msg });
+          if (fileRec && fileRec.dataUrlForP2P) {
+            var payload = { kind: "file", file: { id: fileRec.id, name: fileRec.name, mime: fileRec.mime, size: fileRec.size, data: fileRec.dataUrlForP2P } };
+            if (state.isHostConn) broadcast(payload); else sendToHost(payload);
+          }
+        });
+      }
+      if (file) {
+        var fid = uid();
+        var rec = { id: fid, roomId: room.id, name: file.name, mime: file.type || "application/octet-stream", size: file.size, blob: file };
+        idbPut("files", rec).then(function () {
+          state.fileURLs[fid] = URL.createObjectURL(file);
+          var msg = { id: uid(), roomId: room.id, type: "chat", author: myName(), authorId: state.myId, text: text, ts: Date.now(), fileId: fid, fileName: rec.name, fileMime: rec.mime, fileSize: rec.size };
+          clearPendingFile();
+          if (file.size <= 3 * 1024 * 1024) {
+            blobToDataURL(file).then(function (durl) { rec.dataUrlForP2P = durl; finish(msg, rec); });
+          } else {
+            toast(t("toastBigFile"));
+            finish(msg, null);
+          }
+        });
+      } else {
+        finish({ id: uid(), roomId: room.id, type: "chat", author: myName(), authorId: state.myId, text: text, ts: Date.now() }, null);
+      }
+    }
+    function clearPendingFile() {
+      state.pendingFile = null;
+      $("#pending-file").classList.remove("show");
+      $("#chat-file").value = "";
+    }
+    function autoGrow(ta) {
+      ta.style.height = "auto";
+      ta.style.height = Math.min(110, ta.scrollHeight) + "px";
+    }
+
+    /* ---------------- النسخة الاحتياطية ---------------- */
+    function exportBackup() {
+      return Promise.all([idbAll("rooms"), idbAll("messages"), idbAll("tasks"), idbAll("files"), idbGet("meta", "profile")])
+        .then(function (res) {
+          var fileJobs = res[3].map(function (f) {
+            return blobToDataURL(f.blob).then(function (durl) {
+              return { id: f.id, roomId: f.roomId, name: f.name, mime: f.mime, size: f.size, data: durl };
+            });
+          });
+          return Promise.all(fileJobs).then(function (files) {
+            var backup = { app: "Run", version: 1, exportedAt: new Date().toISOString(), profile: res[4], rooms: res[0], messages: res[1], tasks: res[2], files: files };
+            var blob = new Blob([JSON.stringify(backup)], { type: "application/json" });
+            var a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "run-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+            toast(t("toastExportOk"));
+          });
+        })
+        .catch(function () { toast(t("toastExportErr")); });
+    }
+    function importBackup(file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        try {
+          var data = JSON.parse(reader.result);
+          if (!data || data.app !== "Run") { toast(t("toastNotBackup")); return; }
+          var jobs = [];
+          (data.rooms || []).forEach(function (r) { jobs.push(idbPut("rooms", r)); });
+          (data.messages || []).forEach(function (m) { jobs.push(idbPut("messages", m)); });
+          (data.tasks || []).forEach(function (t) { jobs.push(idbPut("tasks", t)); });
+          (data.files || []).forEach(function (f) {
+            if (f.data) jobs.push(idbPut("files", { id: f.id, roomId: f.roomId, name: f.name, mime: f.mime, size: f.size, blob: dataURLToBlob(f.data) }));
+          });
+          Promise.all(jobs).then(function () {
+            toast(t("toastImportOk"));
+            loadRooms();
+          });
+        } catch (e) { toast(t("toastImportErr")); }
+      };
+      reader.readAsText(file);
+    }
+
+    /* ---------------- روابط الدعوة ---------------- */
+    function inviteLink(code) {
+      var base = window.location.href.split("#")[0];
+      return base + "#join=" + encodeURIComponent(code);
+    }
+    function copyInvite(code) {
+      var link = inviteLink(code);
+      function done() { toast(t("toastInviteCopied")); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(done).catch(function () { fallback(); });
+      } else fallback();
+      function fallback() {
+        var ta = document.createElement("textarea");
+        ta.value = link; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) { toast(link); }
+        ta.remove();
+      }
+    }
+    function handleInviteHash() {
+      var h = window.location.hash || "";
+      var m = h.match(/join=([A-Za-z0-9\-]+)/i);
+      if (!m) return false;
+      var code = "";
+      try { code = decodeURIComponent(m[1]).toUpperCase(); } catch (e) { return false; }
+      if (!/^RUN-[A-Z0-9]{4,}$/.test(code)) return false;
+      $("#join-code").value = code;
+      openModal("#modal-join");
+      toast(t("toastInviteArrived"));
+      var btn = $("#join-form .btn.primary");
+      if (btn) btn.focus();
+      return true;
+    }
+
+    /* ---------------- مشاركة السجل مع موس ---------------- */
+    function fmtFullTime(ts) {
+      var loc = LOCALES[state.lang] || "ar";
+      var d = new Date(ts);
+      return d.toLocaleDateString(loc, { year: "numeric", month: "long", day: "numeric" }) + " · " +
+        d.toLocaleTimeString(loc, { hour: "2-digit", minute: "2-digit" });
+    }
+    function buildShareText(room) {
+      var lines = [];
+      lines.push(t("shareHead", { name: room.name }));
+      lines.push(t("shareCodeLine", { code: room.code, purpose: purposeLabel(room.purpose) }));
+      lines.push(t("shareExportedAt") + fmtFullTime(Date.now()));
+      lines.push(t("shareMsgCount") + state.messages.length);
+      lines.push("========================================");
+      if (!state.messages.length) lines.push(t("shareNoMsgs"));
+      state.messages.forEach(function (m) {
+        if (m.type === "system") { lines.push("— " + (m.text || "") + " —"); return; }
+        var line = (m.pinned ? t("sharePinned") : "") + "[" + fmtFullTime(m.ts) + "] " + (m.author || t("unknownAuthor")) + ":";
+        if (m.text) line += " " + m.text;
+        if (m.fileId) line += " " + t("shareAttached", { name: m.fileName || t("fileFile"), size: fmtSize(m.fileSize || 0) });
+        else if (!m.text) line += " " + t("shareEmpty");
+        lines.push(line);
+      });
+      if (state.tasks.length) {
+        lines.push("========================================");
+        lines.push(t("shareTasksHead"));
+        state.tasks.forEach(function (tk) {
+          lines.push((tk.done ? "✅ " : "⬜ ") + tk.title +
+            (tk.due ? " " + t("shareDue", { due: tk.due }) : "") +
+            (tk.desc ? " — " + tk.desc : "") +
+            t("shareBy") + (tk.author || ""));
+        });
+      }
+      lines.push("========================================");
+      lines.push(t("shareFoot"));
+      return lines.join("\n");
+    }
+    function copyTextGeneric(text, doneMsg) {
+      function done() { toast(doneMsg); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(function () { fallback(); });
+      } else fallback();
+      function fallback() {
+        var ta = $("#share-text");
+        if (ta) { ta.removeAttribute("readonly"); ta.select(); }
+        try { document.execCommand("copy"); done(); } catch (e) { toast(t("toastSelectText")); }
+        if (ta) ta.setAttribute("readonly", "");
+      }
+    }
+
+    /* ---------------- القوائم المنسدلة (⋮) ---------------- */
+    var ICONS = {
+      open: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>',
+      settings: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.4a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.23.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.6 0-1.28.4-1.51 1z"/></svg>',
+      bell: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+      exp: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>',
+      imp: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>',
+      copy: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+      link: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+      share: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>',
+      leave: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+      archive: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>',
+      unarchive: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+      trash: '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>'
+    };
+    var DOTS_SVG = '<svg class="icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="19" r="1.9"/></svg>';
+    var CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+    var CLOSE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    var DL_SVG = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>';
+
+    var menuEl = null;
+    function menuOutside(e) { if (menuEl && !menuEl.contains(e.target)) closeMenu(); }
+    function closeMenu() {
+      if (!menuEl) return;
+      menuEl.remove(); menuEl = null;
+      document.removeEventListener("click", menuOutside, true);
+    }
+    function showMenu(anchor, items) {
+      closeMenu();
+      menuEl = document.createElement("div");
+      menuEl.className = "menu measuring";
+      menuEl.setAttribute("role", "menu");
+      items.forEach(function (it) {
+        var b = document.createElement("button");
+        b.className = "menu-item" + (it.danger ? " danger" : "");
+        b.innerHTML = (it.icon || "") + "<span>" + esc(it.label) + "</span>";
+        b.addEventListener("click", function () { closeMenu(); if (it.onClick) it.onClick(); });
+        menuEl.appendChild(b);
+      });
+      document.body.appendChild(menuEl);
+      var r = anchor.getBoundingClientRect();
+      var mw = menuEl.offsetWidth, mh = menuEl.offsetHeight;
+      var left = document.documentElement.dir === "rtl" ? r.left : r.right - mw;
+      left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
+      var top = r.bottom + 6;
+      if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 6);
+      menuEl.style.left = left + "px";
+      menuEl.style.top = top + "px";
+      menuEl.classList.remove("measuring");
+      setTimeout(function () { document.addEventListener("click", menuOutside, true); }, 0);
+    }
+    function roomMenuItems(room) {
+      var items = [
+        { icon: ICONS.copy, label: t("copyCode"), onClick: function () { copyCode(room.code); } },
+        { icon: ICONS.link, label: t("copyInvite"), onClick: function () { copyInvite(room.code); } }
+      ];
+      if (room.archived) {
+        items.push({ icon: ICONS.unarchive, label: t("reactivate"), onClick: function () {
+          room.archived = false;
+          idbPut("rooms", room).then(function () { toast(t("toastReactivated")); loadRooms(); });
+        } });
+      } else {
+        items.push({ icon: ICONS.archive, label: t("archiveAct"), onClick: function () {
+          room.archived = true;
+          idbPut("rooms", room).then(function () { toast(t("toastArchived")); loadRooms(); });
+        } });
+      }
+      items.push({ icon: ICONS.trash, label: t("deleteAct"), danger: true, onClick: function () {
+        askConfirm(t("confirmDeleteTitle"), t("confirmDeleteBody", { name: room.name }), function () {
+          deleteRoomEverywhere(room).then(function () { toast(t("toastDeleted")); loadRooms(); });
+        });
+      } });
+      return items;
+    }
+    function notifyAction() {
+      if (!("Notification" in window)) { toast(t("toastNoNotify")); return; }
+      Notification.requestPermission().then(function (p) {
+        toast(p === "granted" ? t("toastNotifyOn") : t("toastNotifyDenied"));
+      });
+    }
+
+    /* ---------------- ربط الأحداث ---------------- */
+    function openModal(id) { $(id).classList.add("show"); }
+    function closeModals() { $$(".overlay").forEach(function (o) { o.classList.remove("show"); }); }
+
+    function bindEvents() {
+      $("#display-name").addEventListener("change", function (e) {
+        saveName(e.target.value.trim());
+        toast(t("toastNameSaved"));
+      });
+      $("#btn-create").addEventListener("click", function () { openModal("#modal-create"); setTimeout(function () { $("#create-name").focus(); }, 60); });
+      $("#btn-theme").addEventListener("click", toggleTheme);
+      $("#btn-theme-room").addEventListener("click", toggleTheme);
+      $("#btn-menu-home").addEventListener("click", function () {
+        showMenu(this, [
+          { icon: ICONS.open, label: t("btnJoin"), onClick: function () { openModal("#modal-join"); setTimeout(function () { $("#join-code").focus(); }, 60); } },
+          { icon: ICONS.settings, label: t("btnSettings"), onClick: function () { openModal("#modal-settings"); } },
+          { icon: ICONS.bell, label: t("notifyOn"), onClick: notifyAction },
+          { icon: ICONS.exp, label: t("btnExport"), onClick: exportBackup },
+          { icon: ICONS.imp, label: t("btnImport"), onClick: function () { $("#import-file").click(); } }
+        ]);
+      });
+      $("#btn-menu-room").addEventListener("click", function () {
+        var room = state.currentRoom; if (!room) return;
+        var items = [
+          { icon: ICONS.copy, label: t("copyCode"), onClick: function () { copyCode(room.code); } },
+          { icon: ICONS.link, label: t("copyInvite"), onClick: function () { copyInvite(room.code); } },
+          { icon: ICONS.share, label: t("shareMuse"), onClick: function () {
+            $("#share-text").value = buildShareText(room);
+            openModal("#modal-share");
+          } }
+        ];
+        if (!room.archived) {
+          items.push({ icon: ICONS.leave, label: t("leaveRoom"), onClick: function () {
+            askConfirm(t("confirmLeaveTitle"), t("confirmLeaveBody", { name: room.name }), function () {
+              room.archived = true;
+              idbPut("rooms", room).then(function () { closeRoom(); toast(t("toastLeft")); });
+            });
+          } });
+        }
+        items.push({ icon: ICONS.trash, label: t("deleteRoom"), danger: true, onClick: function () {
+          askConfirm(t("confirmDeleteTitle"), t("confirmDeleteBodyShort", { name: room.name }), function () {
+            deleteRoomEverywhere(room).then(function () { closeRoom(); toast(t("toastDeleted")); });
+          });
+        } });
+        showMenu(this, items);
+      });
+      $$("#seg-theme button").forEach(function (b) {
+        b.addEventListener("click", function () { setTheme(b.getAttribute("data-theme-opt")); });
+      });
+      $$("#seg-lang button").forEach(function (b) {
+        b.addEventListener("click", function () { setLang(b.getAttribute("data-lang-opt")); });
+      });
+      $$("[data-close]").forEach(function (b) { b.addEventListener("click", closeModals); });
+      $$(".overlay").forEach(function (o) {
+        o.addEventListener("click", function (e) { if (e.target === o) closeModals(); });
+      });
+      $("#confirm-yes").addEventListener("click", function () {
+        closeModals();
+        if (confirmCb) { var cb = confirmCb; confirmCb = null; cb(); }
+      });
+
+      $("#create-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = $("#create-name").value.trim();
+        if (!name) return;
+        createRoom(name, $("#create-purpose").value).then(function (room) {
+          closeModals();
+          $("#create-name").value = "";
+          toast(t("toastRoomCreated") + room.code);
+          openRoom(room);
+        });
+      });
+      $("#join-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        joinRoomByCode($("#join-code").value).then(function (room) {
+          if (!room) return;
+          closeModals();
+          $("#join-code").value = "";
+          if (window.location.hash && window.history && history.replaceState) {
+            history.replaceState(null, "", window.location.href.split("#")[0]);
+          }
+          openRoom(room);
+        });
+      });
+
+      document.addEventListener("click", function (e) {
+        var pinBtn = e.target.closest("[data-pin]");
+        if (pinBtn) { togglePin(pinBtn.getAttribute("data-pin")); return; }
+        var unpinBtn = e.target.closest("[data-unpin]");
+        if (unpinBtn) { togglePin(unpinBtn.getAttribute("data-unpin")); return; }
+        var jump = e.target.closest("[data-jump]");
+        if (jump) { jumpToMessage(jump.getAttribute("data-jump")); return; }
+        var menuBtn = e.target.closest("[data-roommenu]");
+        if (menuBtn) {
+          var mr = getRoom(menuBtn.getAttribute("data-roommenu"));
+          if (mr) showMenu(menuBtn, roomMenuItems(mr));
+          return;
+        }
+        var btn = e.target.closest("[data-act]");
+        if (btn) {
+          var room = getRoom(btn.getAttribute("data-id"));
+          if (room && btn.getAttribute("data-act") === "open") openRoom(room);
+          return;
+        }
+        var doneBtn = e.target.closest("[data-task]");
+        if (doneBtn) {
+          var tid = doneBtn.getAttribute("data-task");
+          state.tasks.forEach(function (tk) {
+            if (tk.id === tid) {
+              tk.done = !tk.done;
+              idbPut("tasks", tk);
+              emitEvent({ type: "task-toggle", taskId: tk.id, done: tk.done });
+              renderTasks();
+            }
+          });
+          return;
+        }
+        var delBtn = e.target.closest("[data-deltask]");
+        if (delBtn) {
+          var did = delBtn.getAttribute("data-deltask");
+          state.tasks = state.tasks.filter(function (tk) { return tk.id !== did; });
+          idbDel("tasks", did);
+          emitEvent({ type: "task-del", taskId: did });
+          renderTasks();
+        }
+      });
+
+      $("#btn-back").addEventListener("click", closeRoom);
+      $$(".tabs button").forEach(function (b) {
+        b.addEventListener("click", function () { switchTab(b.getAttribute("data-tab")); });
+      });
+      $("#btn-copy-code").addEventListener("click", function () {
+        if (state.currentRoom) copyCode(state.currentRoom.code);
+      });
+      $("#btn-share-copy").addEventListener("click", function () {
+        copyTextGeneric($("#share-text").value, t("toastShareCopied"));
+      });
+      $("#btn-share-download").addEventListener("click", function () {
+        var room = state.currentRoom; if (!room) return;
+        var blob = new Blob(["\ufeff" + $("#share-text").value], { type: "text/plain;charset=utf-8" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "run-" + room.code.replace(/^RUN-/, "").toLowerCase() + "-log.txt";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+        toast(t("toastShareDownloaded"));
+      });
+      $("#btn-unarchive").addEventListener("click", function () {
+        var room = state.currentRoom; if (!room) return;
+        room.archived = false;
+        idbPut("rooms", room).then(function () { openRoom(room); toast(t("toastReactivatedRoom")); });
+      });
+
+      $("#btn-send").addEventListener("click", sendChat);
+      $("#chat-input").addEventListener("input", function (e) {
+        autoGrow(e.target);
+        var room = state.currentRoom;
+        if (room) {
+          var v = e.target.value;
+          if (v) state.ui.drafts[room.id] = v;
+          else delete state.ui.drafts[room.id];
+          saveUIDebounced();
+        }
+      });
+      $("#chat-input").addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); }
+      });
+      window.addEventListener("scroll", function () {
+        var room = state.currentRoom;
+        if (room && state.currentTab === "chat" && !state.suppressAutoScroll) {
+          state.ui.scrolls[room.id] = window.scrollY;
+          saveUIDebounced();
+        }
+      }, { passive: true });
+      window.addEventListener("resize", closeMenu);
+      /* عودة الشبكة أو رجوع التبويب للمقدمة = إعادة اتصال فورية بدل الانتظار */
+      window.addEventListener("online", function () { retryP2PNow(); });
+      document.addEventListener("visibilitychange", function () { if (!document.hidden) retryP2PNow(); });
+      var presEl = document.querySelector("#view-room .presence");
+      if (presEl) {
+        presEl.style.cursor = "pointer";
+        presEl.addEventListener("click", function () { retryP2PNow(); });
+      }
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") { closeMenu(); closeModals(); }
+      });
+      $("#btn-attach").addEventListener("click", function () { $("#chat-file").click(); });
+      $("#chat-file").addEventListener("change", function (e) {
+        var f = e.target.files && e.target.files[0];
+        if (!f) return;
+        if (f.size > 30 * 1024 * 1024) { toast(t("toastFileTooBig")); e.target.value = ""; return; }
+        state.pendingFile = f;
+        $("#pending-file-name").textContent = t("pendingFileTxt", { name: f.name, size: fmtSize(f.size) });
+        $("#pending-file").classList.add("show");
+      });
+      $("#pending-file-clear").addEventListener("click", clearPendingFile);
+
+      $("#task-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var room = state.currentRoom; if (!room || room.archived) return;
+        var title = $("#task-title").value.trim();
+        if (!title) { toast(t("toastTaskTitleReq")); return; }
+        var tk = { id: uid(), roomId: room.id, title: title, desc: $("#task-desc").value.trim(), due: $("#task-due").value || "", done: false, author: myName(), authorId: state.myId, ts: Date.now() };
+        state.tasks.push(tk);
+        $("#task-title").value = ""; $("#task-desc").value = ""; $("#task-due").value = "";
+        idbPut("tasks", tk).then(function () { touchRoom(room); });
+        renderTasks(); updateBadges();
+        emitEvent({ type: "task-add", task: tk });
+        toast(t("toastTaskAdded"));
+      });
+
+      $("#import-file").addEventListener("change", function (e) {
+        if (e.target.files && e.target.files[0]) importBackup(e.target.files[0]);
+        e.target.value = "";
+      });
+    }
+    function updateNotifyLabel() {
+      var el = $("#notify-label");
+      if (el && "Notification" in window) {
+        el.textContent = Notification.permission === "granted" ? t("notifyEnabled") : t("notifyOn");
+      }
+    }
+    function copyCode(code) {
+      function done() { toast(t("toastCodeCopied", { code: code })); }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(done).catch(function () { fallback(); });
+      } else fallback();
+      function fallback() {
+        var ta = document.createElement("textarea");
+        ta.value = code; document.body.appendChild(ta); ta.select();
+        try { document.execCommand("copy"); done(); } catch (e) { toast(t("toastCodeFallback") + code); }
+        ta.remove();
+      }
+    }
+
+    /* ---------------- البدء ---------------- */
+    openDB().then(function () {
+      return loadMeta();
+    }).then(function () {
+      applyTheme();
+      bindEvents();
+      applyLang();
+      return loadRooms();
+    }).then(function () {
+      if (!handleInviteHash() && state.ui.lastRoomId) {
+        var room = getRoom(state.ui.lastRoomId);
+        if (room) openRoom(room);
+      }
+    }).catch(function () {
+      toast(t("toastStorageErr"));
+    });
+    </script>
+  </body>
+</html>
