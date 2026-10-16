@@ -385,6 +385,34 @@
   .status-text:not(:empty) { margin-top: 14px; }
   .status-text.error { background: rgba(255,140,150,.07); border: 1px solid rgba(255,140,150,.2); color: var(--danger); border-radius: 13px; padding: 11px 12px; line-height: 1.6; overflow-wrap: anywhere; }
   .status-text.success { color: var(--success); }
+  /* ---- Recent rooms (rejoin bubbles) ---- */
+  .recent-rooms { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
+  .recent-rooms-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+  .recent-rooms-head > span:first-child { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); }
+  .recent-hint { font-size: 10px; color: var(--subtle); }
+  .recent-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  .recent-room { display: flex; align-items: center; gap: 8px; padding: 9px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; font: inherit; font-size: 12px; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+  .recent-room:hover { transform: translateY(-1px); border-color: rgba(200,241,105,.45); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .recent-room-name { font-weight: 700; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recent-room-code { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: var(--accent-ink); background: var(--accent); border-radius: 6px; padding: 2px 7px; }
+  .recent-room-time { font-size: 10px; color: var(--subtle); }
+  /* ---- Typing indicator ---- */
+  .typing-indicator { display: none; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); padding: 0 6px 8px; }
+  .typing-indicator.visible { display: flex; animation: message-in .2s ease both; }
+  .typing-dots { display: inline-flex; gap: 3px; }
+  .typing-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typing-bounce 1.2s infinite; }
+  .typing-dots i:nth-child(2) { animation-delay: .15s; }
+  .typing-dots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes typing-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
+  /* ---- Design polish ---- */
+  .message-bubble.own { background: linear-gradient(135deg, rgba(200,241,105,.16), rgba(200,241,105,.06)); border-color: rgba(200,241,105,.28); box-shadow: 0 4px 14px rgba(200,241,105,.06); }
+  .send-button { background: linear-gradient(135deg, var(--accent), #a8d94e); box-shadow: 0 4px 16px rgba(200,241,105,.22); transition: transform .15s ease, box-shadow .15s ease; }
+  .send-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,241,105,.3); }
+  .send-button:active:not(:disabled) { transform: translateY(0); }
+  .primary-button { transition: transform .15s ease, box-shadow .15s ease; }
+  .primary-button:hover:not(:disabled) { transform: translateY(-1px); }
+  .avatar { box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .room-toolbar { backdrop-filter: blur(8px); }
   @media (max-width: 760px) {
     .topbar { height: 64px; padding: 0 17px; }
     .landing { padding: 18px 15px 34px; }
@@ -460,6 +488,10 @@
               <p class="field-help" style="margin-top:10px">Ask the room creator for the 6-character code, or open their invite link.</p>
             </form>
             <p class="status-text" id="landingStatus" aria-live="polite"></p>
+            <div class="recent-rooms" id="recentRooms" hidden>
+              <div class="recent-rooms-head"><span>Recent rooms</span><span class="recent-hint">Jump back in anytime</span></div>
+              <div class="recent-list" id="recentRoomsList"></div>
+            </div>
           </div>
           <div class="preview-wrap">
             <div class="preview-label"><span>A peek inside a room</span><span>RUN / PREVIEW_01</span></div>
@@ -495,6 +527,7 @@
           <div class="mobile-tabs"><button class="mobile-tab active" data-mobile-tab="chat">Chat</button><button class="mobile-tab" data-mobile-tab="tasks">Shared tasks <span id="mobileTaskCount">0</span></button></div>
           <div class="messages" id="messagesList" aria-live="polite"></div>
           <div class="composer-wrap">
+            <div class="typing-indicator" id="typingIndicator" aria-live="polite"></div>
             <div class="upload-status" id="uploadStatus" aria-live="polite">Uploading file…</div>
             <form class="composer" id="messageForm">
               <input type="file" id="fileInput" class="sr-only" aria-label="Choose a file to share">
@@ -567,6 +600,9 @@
     mqttClient: null,
     mqttConnectPromise: null,
     roomTopic: '',
+    typingTopic: '',
+    typingUsers: new Map(),
+    lastTypingSent: 0,
     room: null,
     roomData: null,
     roomFingerprint: '',
@@ -661,6 +697,7 @@
     $('#roomGrid').dataset.mobileView = 'chat';
     const url = new URL(window.location.href); url.searchParams.delete('room'); url.searchParams.delete('dir');
     window.history.replaceState({}, '', url.toString());
+    renderRecentRooms();
   }
   function showRoomShell() {
     $('#landingScreen').classList.add('hidden'); $('#roomScreen').classList.add('active'); state.roomMode = true;
@@ -671,6 +708,88 @@
      the retained message; updates = republishing. Live subscriptions replace
      polling, so changes arrive instantly. */
   function mqttTopicFor(code) { return MQTT_TOPIC_PREFIX + String(code || '').toUpperCase(); }
+  function typingTopicFor(code) { return mqttTopicFor(code) + '/typing'; }
+
+  /* ---------- Recent rooms: rejoin bubbles on the landing screen ---------- */
+  const RECENT_ROOMS_KEY = 'run_recent_rooms_v1';
+  function getRecentRooms() {
+    try { const value = JSON.parse(localStorage.getItem(RECENT_ROOMS_KEY) || '[]'); return Array.isArray(value) ? value : []; }
+    catch { return []; }
+  }
+  function saveRecentRoom(code, name) {
+    const normalized = String(code || '').toUpperCase();
+    if (!/^[A-Z0-9]{6}$/.test(normalized)) return;
+    const rooms = getRecentRooms().filter(r => r && r.code !== normalized);
+    rooms.unshift({ code: normalized, name: String(name || 'Room').slice(0, 60), at: new Date().toISOString() });
+    try { localStorage.setItem(RECENT_ROOMS_KEY, JSON.stringify(rooms.slice(0, 12))); } catch {}
+  }
+  function timeAgo(iso) {
+    const seconds = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + 'h ago';
+    return Math.floor(hours / 24) + 'd ago';
+  }
+  function renderRecentRooms() {
+    const wrap = $('#recentRooms'), list = $('#recentRoomsList');
+    if (!wrap || !list) return;
+    const rooms = getRecentRooms();
+    wrap.hidden = !rooms.length;
+    list.innerHTML = rooms.map(r =>
+      `<button type="button" class="recent-room" data-recent-code="${escapeHTML(r.code)}">` +
+      `<span class="recent-room-name">${escapeHTML(r.name || 'Room')}</span>` +
+      `<span class="recent-room-code">${escapeHTML(r.code)}</span>` +
+      `<span class="recent-room-time">${escapeHTML(timeAgo(r.at))}</span></button>`
+    ).join('');
+  }
+
+  /* ---------- Typing indicator over a lightweight non-retained topic ---------- */
+  let typingIdleTimer = null;
+  function publishTyping(isTyping) {
+    if (!state.mqttClient || !state.mqttClient.connected || !state.typingTopic || !state.room) return;
+    try {
+      state.mqttClient.publish(state.typingTopic,
+        JSON.stringify({ userId: state.userId, name: state.name || 'Guest', typing: !!isTyping, at: Date.now() }),
+        { qos: 0, retain: false }, () => {});
+    } catch {}
+  }
+  function noteTypingActivity() {
+    if (!state.room) return;
+    const now = Date.now();
+    if (now - state.lastTypingSent > 2500) { state.lastTypingSent = now; publishTyping(true); }
+    if (typingIdleTimer) window.clearTimeout(typingIdleTimer);
+    typingIdleTimer = window.setTimeout(() => publishTyping(false), 3000);
+  }
+  function stopTypingSignal() {
+    if (typingIdleTimer) { window.clearTimeout(typingIdleTimer); typingIdleTimer = null; }
+    publishTyping(false);
+  }
+  function handleTypingPayload(payload) {
+    let data;
+    try { data = JSON.parse(payload.toString()); } catch { return; }
+    if (!data || !data.userId || data.userId === state.userId) return;
+    if (data.typing) state.typingUsers.set(data.userId, { name: String(data.name || 'Someone').slice(0, 32), at: Date.now() });
+    else state.typingUsers.delete(data.userId);
+    renderTypingIndicator();
+  }
+  function renderTypingIndicator() {
+    const el = $('#typingIndicator');
+    if (!el) return;
+    const now = Date.now();
+    const names = [];
+    for (const [id, user] of state.typingUsers) {
+      if (now - user.at > 4000) state.typingUsers.delete(id);
+      else names.push(user.name);
+    }
+    if (!names.length) { el.classList.remove('visible'); el.innerHTML = ''; return; }
+    const label = names.length === 1 ? `${escapeHTML(names[0])} is typing`
+      : names.length === 2 ? `${escapeHTML(names[0])} and ${escapeHTML(names[1])} are typing`
+      : `${names.length} people are typing`;
+    el.innerHTML = `<span class="typing-dots"><i></i><i></i><i></i></span><span>${label}</span>`;
+    el.classList.add('visible');
+  }
 
   function mqttConnectOnce(url) {
     return new Promise((resolve, reject) => {
@@ -693,7 +812,9 @@
 
   function bindMqttClient(client) {
     client.on('message', (topic, payload) => {
-      if (!state.room || topic !== state.roomTopic) return;
+      if (!state.room) return;
+      if (topic === state.typingTopic) { handleTypingPayload(payload); return; }
+      if (topic !== state.roomTopic) return;
       let data;
       try { data = JSON.parse(payload.toString()); } catch { return; }
       try {
@@ -719,6 +840,7 @@
     client.on('close', () => { if (state.room) setSync('offline', 'Offline'); });
     client.on('connect', () => {
       if (state.roomTopic) { try { client.subscribe(state.roomTopic, { qos: 1 }); } catch {} }
+      if (state.typingTopic) { try { client.subscribe(state.typingTopic, { qos: 0 }); } catch {} }
       if (state.room) setSync('syncing', 'Syncing');
     });
   }
@@ -788,18 +910,29 @@
 
   function subscribeToRoomTopic(code) {
     const topic = mqttTopicFor(code);
+    const typingTopic = typingTopicFor(code);
     if (state.mqttClient && state.roomTopic && state.roomTopic !== topic) {
       try { state.mqttClient.unsubscribe(state.roomTopic); } catch {}
     }
+    if (state.mqttClient && state.typingTopic && state.typingTopic !== typingTopic) {
+      try { state.mqttClient.unsubscribe(state.typingTopic); } catch {}
+    }
     state.roomTopic = topic;
+    state.typingTopic = typingTopic;
     if (state.mqttClient && state.mqttClient.connected) {
       try { state.mqttClient.subscribe(topic, { qos: 1 }); } catch {}
+      try { state.mqttClient.subscribe(typingTopic, { qos: 0 }); } catch {}
     }
   }
 
   function leaveRoomTopic() {
+    stopTypingSignal();
     if (state.mqttClient && state.roomTopic) { try { state.mqttClient.unsubscribe(state.roomTopic); } catch {} }
+    if (state.mqttClient && state.typingTopic) { try { state.mqttClient.unsubscribe(state.typingTopic); } catch {} }
     state.roomTopic = '';
+    state.typingTopic = '';
+    state.typingUsers.clear();
+    renderTypingIndicator();
   }
 
   function normalizeRoom(data, code) {
@@ -875,6 +1008,7 @@
     $('#syncState').classList.remove('offline','syncing'); $('#syncLabel').textContent = 'Synced';
     renderRoomData();
     subscribeToRoomTopic(room.code);
+    saveRecentRoom(room.code, state.roomData.meta.name);
     if (fromJoin) toast(`You're in ${state.roomData.meta.name}.`);
   }
   function setSync(kind, label) {
@@ -967,7 +1101,7 @@
     const msg = {id:makeId(), type:'text', text:cleaned, author:state.name || 'Guest', userId:state.userId, createdAt:new Date().toISOString()};
     const next = {...state.roomData, messages:[...(state.roomData?.messages || []), msg].slice(-600)};
     state.roomData = next; state.roomFingerprint = fingerprint(next); renderRoomData();
-    $('#messageInput').value = ''; resizeComposer();
+    $('#messageInput').value = ''; resizeComposer(); stopTypingSignal();
     try { await enqueueRoomMutation(base => ({...base, messages:[...base.messages.filter(m => m.id !== msg.id), msg].slice(-600)})); }
     catch { toast('Message could not be saved. It may disappear after a refresh.', 'error'); }
   }
@@ -1115,7 +1249,7 @@
     $('#displayName').addEventListener('change', () => { state.name = $('#displayName').value.trim().slice(0,32); store.set('run_display_name', state.name); });
     $('#messageForm').addEventListener('submit', event => { event.preventDefault(); if (!state.pendingUpload) sendMessage($('#messageInput').value); });
     $('#messageInput').addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); if (!state.pendingUpload) sendMessage($('#messageInput').value); } });
-    $('#messageInput').addEventListener('input', resizeComposer);
+    $('#messageInput').addEventListener('input', () => { resizeComposer(); noteTypingActivity(); });
     $('#attachButton').addEventListener('click', () => $('#fileInput').click());
     $('#fileInput').addEventListener('change', event => { const file = event.target.files?.[0]; if (file) uploadFile(file); });
     $('#taskForm').addEventListener('submit', event => { event.preventDefault(); addTask($('#newTaskInput').value); });
@@ -1148,6 +1282,18 @@
     $('#manualUploadModal').addEventListener('click', event => { if (event.target === $('#manualUploadModal')) { $('#manualUploadModal').classList.remove('open'); state.pendingManualFile = null; } });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.room) mqttEnsureConnected().catch(() => {}); });
     window.addEventListener('online', () => { if (state.room) mqttEnsureConnected().catch(() => {}); });
+    const recentList = $('#recentRoomsList');
+    if (recentList) recentList.addEventListener('click', event => {
+      const button = event.target.closest('[data-recent-code]');
+      if (!button) return;
+      const name = $('#displayName').value.trim().slice(0, 32);
+      if (!name) { status('Add a display name first, then pick a room to rejoin.', 'error'); $('#displayName').focus(); return; }
+      state.name = name; store.set('run_display_name', name);
+      $('#joinCode').value = button.dataset.recentCode;
+      $('#joinRoomForm').requestSubmit();
+    });
+    renderRecentRooms();
+    window.setInterval(renderTypingIndicator, 2000);
   }
   async function bootstrapInvite() {
     const params = new URLSearchParams(window.location.search);
