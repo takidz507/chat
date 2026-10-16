@@ -44,14 +44,30 @@
     --text: #20221d;
     --muted: #656a5d;
     --subtle: #858a7d;
-    --accent: #b1e84e;
-    --accent-ink: #1d2810;
+    --accent: #3390ec;
+    --accent-ink: #ffffff;
     --purple: #6f62db;
     --purple-soft: rgba(111,98,219,.1);
     --success: #2c813d;
     --danger: #c73e4d;
     --shadow: 0 22px 65px rgba(30,40,20,.09);
   }
+  :root[data-theme="amoled"] {
+    color-scheme: dark;
+    --bg:#000000; --bg-elevated:#050505; --panel:#080808; --panel-soft:#101010; --panel-hover:#171717;
+    --line:rgba(255,255,255,.10); --line-strong:rgba(255,255,255,.17); --text:#f7f7f7;
+    --muted:#a3a3a3; --subtle:#777; --accent:#c8f169; --accent-ink:#18210a;
+    --purple:#aaa2ff; --purple-soft:rgba(170,162,255,.13); --success:#a8ee9c; --danger:#ff8c96;
+    --shadow:0 26px 75px rgba(0,0,0,.48);
+  }
+  html, body, .access-card, .chat-panel, .tasks-panel, .panel-head, .composer-wrap, .composer,
+  .text-input, .secondary-button, .icon-button, .modal, .mobile-tab, .room-toolbar, .task-form,
+  .task-item, .file-card, .topbar { transition:background-color .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease; }
+  button, .primary-button, .secondary-button, .quiet-button, .icon-button, .mobile-tab { -webkit-tap-highlight-color:transparent; }
+  button:active { transform:scale(.97); }
+  .app-shell { padding-bottom:env(safe-area-inset-bottom); }
+  .ambient { transition:opacity .3s ease; }
+  :root[data-theme="amoled"] .ambient {opacity:.035;}
   * { box-sizing: border-box; }
   html { background: var(--bg); scroll-behavior: smooth; }
   body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--text); font-family: Manrope, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
@@ -385,6 +401,87 @@
   .status-text:not(:empty) { margin-top: 14px; }
   .status-text.error { background: rgba(255,140,150,.07); border: 1px solid rgba(255,140,150,.2); color: var(--danger); border-radius: 13px; padding: 11px 12px; line-height: 1.6; overflow-wrap: anywhere; }
   .status-text.success { color: var(--success); }
+  @media (max-width: 760px) {
+    .topbar { height: 64px; padding: 0 17px; }
+    .landing { padding: 18px 15px 34px; }
+    .hero { grid-template-columns: minmax(0,1fr); gap: 0; min-height: 0; }
+    .access-card { padding: 22px 19px; }
+    .hero-copy, .hero-chips { display: none !important; }
+    .join-row .text-input { min-width: 0; }
+  }
+  @media (max-width: 390px) {
+    .access-card { padding: 19px 16px; }
+    .join-row { align-items: stretch; }
+    .join-row .secondary-button { padding: 0 10px; gap: 5px; }
+  }
+
+
+  /* Mobile-first Run refresh */
+  .topbar {max-width:760px; padding-inline:22px;}
+  .landing {max-width:760px; padding:28px 20px 90px;}
+  .hero {display:block;min-height:0;}
+  .hero-intro {display:none!important;}
+  .hero-side {max-width:100%;}
+  .access-card {border-radius:26px;padding:25px;box-shadow:0 16px 44px rgba(0,0,0,.13);}
+  .access-head {margin-bottom:20px;}
+  .access-title {font-size:27px;}
+  .access-subtitle {font-size:13px;}
+  .field-help {font-size:11px;}
+  .run-fab {position:fixed;z-index:42;right:max(22px,env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));width:62px;height:62px;border:0;border-radius:22px;background:var(--accent);color:var(--accent-ink);box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 0 7px rgba(200,241,105,.08);font-size:34px;display:grid;place-items:center;transition:transform .32s cubic-bezier(.2,1.6,.4,1),border-radius .2s,box-shadow .2s;}
+  .run-fab.open {transform:rotate(45deg) scale(1.04);border-radius:50%;box-shadow:0 12px 35px rgba(0,0,0,.34);}
+  .fab-plus {display:block;line-height:1;transition:transform .25s;}
+  .fab-scrim {position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .2s;}
+  .fab-scrim.open {opacity:1;pointer-events:auto;}
+  .fab-menu {position:fixed;z-index:41;right:22px;bottom:calc(96px + env(safe-area-inset-bottom));display:grid;gap:9px;width:min(290px,calc(100vw - 34px));opacity:0;transform:translateY(12px) scale(.96);transform-origin:bottom right;pointer-events:none;transition:opacity .2s,transform .28s cubic-bezier(.2,1.3,.4,1);}
+  .fab-menu.open {opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
+  .fab-menu button {display:flex;align-items:center;gap:12px;text-align:left;padding:13px;border:1px solid var(--line-strong);border-radius:17px;background:var(--bg-elevated);color:var(--text);box-shadow:var(--shadow);}
+  .fab-menu-icon {width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(200,241,105,.13);color:var(--accent);font-size:23px;flex:0 0 auto;}
+  .fab-menu strong,.fab-menu small {display:block;}.fab-menu strong {font-size:12px;}.fab-menu small {color:var(--muted);font-size:10px;margin-top:2px;}
+  .settings-label {font-size:10px;letter-spacing:1.3px;font-weight:800;color:var(--subtle);margin:20px 0 10px;}
+  .theme-options {display:grid;gap:9px;}
+  .theme-option {width:100%;display:flex;align-items:center;gap:12px;text-align:left;padding:12px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--text);}
+  .theme-option.selected {border-color:rgba(200,241,105,.58);background:var(--panel-hover);}
+  .theme-option strong,.theme-option small {display:block;}.theme-option strong {font-size:12px;}.theme-option small {font-size:10px;color:var(--muted);margin-top:3px;}
+  .theme-swatch {width:46px;height:42px;border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:4px;flex:0 0 auto;border:1px solid rgba(127,127,127,.22);}
+  .theme-swatch i {display:block;height:5px;border-radius:4px;background:currentColor;opacity:.65;}.theme-swatch i:nth-child(2){width:70%;}.theme-swatch i:nth-child(3){width:45%;}
+  .swatch-default {background:#171820;color:#c8f169;}.swatch-amoled {background:#000;color:#c8f169;border-color:#303030;}.swatch-light {background:#f4f7fb;color:#3688d9;}
+  .theme-check {margin-left:auto;color:var(--accent);opacity:0;font-weight:900;}.theme-option.selected .theme-check {opacity:1;}
+  .settings-modal {max-width:430px;}
+  .room-screen {padding-top:17px;}
+  .chat-panel,.tasks-panel {box-shadow:0 10px 35px rgba(0,0,0,.10);}
+  .message-bubble.own {background:linear-gradient(135deg,rgba(200,241,105,.17),rgba(200,241,105,.07));border-color:rgba(200,241,105,.23);}
+  .send-button {background:linear-gradient(135deg,#d7ff85,#b7e657);box-shadow:0 5px 16px rgba(200,241,105,.16);}
+  .avatar {box-shadow:0 4px 12px rgba(0,0,0,.12);}
+  .room-toolbar {backdrop-filter:blur(12px);}
+  @media (max-width:760px) {
+    .topbar {padding-inline:17px;}
+    .landing {padding:18px 15px 100px;}
+    .access-card {padding:22px 19px;border-radius:23px;}
+    .hero-side {width:100%;}
+    .room-screen {padding-bottom:calc(78px + env(safe-area-inset-bottom));}
+    .room-grid {display:grid;grid-template-columns:1fr;}
+    .chat-panel {min-height:calc(100dvh - 215px);}
+    .mobile-tabs {position:fixed;z-index:15;left:12px;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));display:flex;gap:5px;padding:6px;background:var(--bg-elevated);border:1px solid var(--line-strong);border-radius:18px;box-shadow:0 10px 35px rgba(0,0,0,.25);backdrop-filter:blur(18px);}
+    .mobile-tab {flex:1;min-height:42px;border-radius:13px;font-size:12px;}
+    .mobile-tab.active {background:var(--accent);border-color:transparent;color:var(--accent-ink);}
+    .room-grid[data-mobile-view="tasks"] .tasks-panel {display:flex;min-height:calc(100dvh - 230px);}
+    .room-grid[data-mobile-view="tasks"] .chat-panel {display:flex;min-height:0;overflow:visible;background:transparent;border:0;box-shadow:none;}
+    .room-grid[data-mobile-view="tasks"] .chat-panel > .panel-head, .room-grid[data-mobile-view="tasks"] .chat-panel > .messages, .room-grid[data-mobile-view="tasks"] .chat-panel > .composer-wrap {display:none;}
+    .room-grid[data-mobile-view="tasks"] .chat-panel .mobile-tabs {padding:0 0 8px;}
+    .room-grid[data-mobile-view="chat"] .tasks-panel {display:none;}
+    .room-grid[data-mobile-view="tasks"] .mobile-tabs {position:fixed;}
+    .room-bottom {display:none;}
+    .composer-hint span:last-child {display:none;}
+  }
+  @media (prefers-reduced-motion:reduce) {.run-fab,.fab-menu,.fab-scrim {transition:none!important;}}
+
+/* Prevent the old duplicated top-level Join button from appearing. */
+#joinRoomButton, .join-row > button { display: none !important; }
+#inlineJoinDivider, #joinRoomForm { display:none !important; }
+#joinModal #joinRoomForm { display:block !important; }
+#joinModal .join-row { display:flex; }
+#joinModal .join-row .text-input { width:100%; }
+#joinModal .modal-actions { margin-top:16px; }
   /* ---- Recent rooms (rejoin bubbles) ---- */
   .recent-rooms { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
   .recent-rooms-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
@@ -404,29 +501,6 @@
   .typing-dots i:nth-child(2) { animation-delay: .15s; }
   .typing-dots i:nth-child(3) { animation-delay: .3s; }
   @keyframes typing-bounce { 0%, 60%, 100% { transform: translateY(0); opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
-  /* ---- Design polish ---- */
-  .message-bubble.own { background: linear-gradient(135deg, rgba(200,241,105,.16), rgba(200,241,105,.06)); border-color: rgba(200,241,105,.28); box-shadow: 0 4px 14px rgba(200,241,105,.06); }
-  .send-button { background: linear-gradient(135deg, var(--accent), #a8d94e); box-shadow: 0 4px 16px rgba(200,241,105,.22); transition: transform .15s ease, box-shadow .15s ease; }
-  .send-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,241,105,.3); }
-  .send-button:active:not(:disabled) { transform: translateY(0); }
-  .primary-button { transition: transform .15s ease, box-shadow .15s ease; }
-  .primary-button:hover:not(:disabled) { transform: translateY(-1px); }
-  .avatar { box-shadow: 0 2px 8px rgba(0,0,0,.2); }
-  .room-toolbar { backdrop-filter: blur(8px); }
-  @media (max-width: 760px) {
-    .topbar { height: 64px; padding: 0 17px; }
-    .landing { padding: 18px 15px 34px; }
-    .hero { grid-template-columns: minmax(0,1fr); gap: 0; min-height: 0; }
-    .access-card { padding: 22px 19px; }
-    .hero-copy, .hero-chips { display: none !important; }
-    .join-row .text-input { min-width: 0; }
-  }
-  @media (max-width: 390px) {
-    .access-card { padding: 19px 16px; }
-    .join-row { align-items: stretch; }
-    .join-row .secondary-button { padding: 0 10px; gap: 5px; }
-  }
-
 </style>
 </head>
 <body>
@@ -476,16 +550,15 @@
                   </div>
                 </div>
               </details>
-              <button class="primary-button full" id="createRoomButton" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Create a room</button>
             </form>
-            <div class="or-line">or join a room</div>
+            <div class="or-line" id="inlineJoinDivider">or join a room</div>
             <form id="joinRoomForm">
               <div class="join-row">
                 <label class="sr-only" for="joinCode">Six-character room code or invite link</label>
                 <input class="text-input" id="joinCode" maxlength="500" placeholder="6-character code" autocomplete="off" spellcheck="false" required>
-                <button class="secondary-button" id="joinRoomButton" type="submit">Join room <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+
               </div>
-              <p class="field-help" style="margin-top:10px">Ask the room creator for the 6-character code, or open their invite link.</p>
+              <p class="field-help" style="margin:7px 2px 0">Press Enter to join, or use the + button.</p>
             </form>
             <p class="status-text" id="landingStatus" aria-live="polite"></p>
             <div class="recent-rooms" id="recentRooms" hidden>
@@ -550,6 +623,20 @@
       <div class="room-bottom"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg> Updates sync every 2 seconds. Keep the invite link for next time.</span><button id="leaveRoomButton">Leave this room</button></div>
     </section>
   </main>
+</div>
+<button class="run-fab" id="runFab" aria-label="Create or join a room" aria-expanded="false"><span class="fab-plus">＋</span></button>
+<div class="fab-scrim" id="fabScrim"></div>
+<div class="fab-menu" id="fabMenu" aria-label="Room actions"><button type="button" data-fab-action="create"><span class="fab-menu-icon">＋</span><span><strong>Create a room</strong><small>Start a new shared space</small></span></button><button type="button" data-fab-action="join"><span class="fab-menu-icon">↗</span><span><strong>Join a room</strong><small>Enter a room code or invite</small></span></button></div>
+<div class="modal-backdrop" id="joinModal" role="dialog" aria-modal="true" aria-labelledby="joinModalTitle"><div class="modal"><div class="modal-head"><div><h3 id="joinModalTitle">Join a room</h3><p>Enter a six-character room code or paste an invite link.</p></div><button class="icon-button" id="closeJoinModal" aria-label="Close join dialog">×</button></div><div id="joinModalContent"></div><div class="modal-actions"><button class="primary-button" id="joinModalSubmit" type="button">Join room</button></div></div></div>
+<div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="modal settings-modal"><div class="modal-head"><div><h3 id="settingsTitle">Appearance</h3><p>Make Run feel right for you.</p></div><button class="icon-button" id="closeSettings" aria-label="Close settings">×</button></div>
+    <div class="settings-label">THEME</div>
+    <div class="theme-options">
+      <button type="button" class="theme-option" data-theme-choice="dark"><span class="theme-swatch swatch-default"><i></i><i></i><i></i></span><span><strong>Default</strong><small>Dark with lime accent</small></span><span class="theme-check">✓</span></button>
+      <button type="button" class="theme-option" data-theme-choice="amoled"><span class="theme-swatch swatch-amoled"><i></i><i></i><i></i></span><span><strong>AMOLED Black</strong><small>True black backgrounds</small></span><span class="theme-check">✓</span></button>
+      <button type="button" class="theme-option" data-theme-choice="light"><span class="theme-swatch swatch-light"><i></i><i></i><i></i></span><span><strong>Light</strong><small>Soft blue and white</small></span><span class="theme-check">✓</span></button>
+    </div>
+  </div>
 </div>
 <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 <div class="modal-backdrop" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle">
@@ -683,12 +770,17 @@
     else { button.disabled = false; if (button.dataset.originalText) button.innerHTML = button.dataset.originalText; delete button.dataset.originalText; }
   }
   function setTheme(theme) {
-    state.theme = theme === 'light' ? 'light' : 'dark';
+    state.theme = ['dark','amoled','light'].includes(theme) ? theme : 'dark';
     document.documentElement.dataset.theme = state.theme;
     store.set('run_theme', state.theme);
-    $('#themeIcon').innerHTML = state.theme === 'dark'
-      ? '<path d="M20.2 15.4A8.6 8.6 0 0 1 8.6 3.8 8.8 8.8 0 1 0 20.2 15.4Z"/>'
-      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>';
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) metaTheme.content = state.theme === 'light' ? '#f4f7fb' : state.theme === 'amoled' ? '#000000' : '#111218';
+    $('#themeIcon').innerHTML = state.theme === 'light'
+      ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />'
+      : state.theme === 'amoled'
+      ? '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M8 12h8"/>'
+      : '<path d="M20.2 15.4A8.6 8.6 0 0 1 8.6 3.8 8.8 8.8 0 1 0 20.2 15.4Z"/>';
+    $$('[data-theme-choice]').forEach(button => button.classList.toggle('selected', button.dataset.themeChoice === state.theme));
   }
   function showLanding() {
     leaveRoomTopic();
@@ -1011,11 +1103,13 @@
     saveRecentRoom(room.code, state.roomData.meta.name);
     if (fromJoin) toast(`You're in ${state.roomData.meta.name}.`);
   }
+
   function setSync(kind, label) {
     $('#syncState').classList.toggle('syncing', kind === 'syncing');
     $('#syncState').classList.toggle('offline', kind === 'offline');
     $('#syncLabel').textContent = label;
   }
+
   function renderRoomData() {
     renderMessages(); renderTasks();
     $('#messageCount').textContent = `${state.roomData.messages.length} message${state.roomData.messages.length === 1 ? '' : 's'}`;
@@ -1233,16 +1327,30 @@
     const name = $('#displayName').value.trim().slice(0,32);
     if (!name) { status('Add a display name first so people know who is talking.', 'error'); $('#displayName').focus(); return; }
     state.name = name; store.set('run_display_name', name);
-    const button = $('#joinRoomButton'); setBusy(button, true, 'Finding room…'); status('Looking for your room…');
+    status('Looking for your room…');
     try { await joinRoom($('#joinCode').value); status(''); $('#joinCode').value = ''; }
     catch (error) { status(error.message || 'Could not join this room.', 'error'); }
-    finally { setBusy(button, false); }
+    finally {}
   }
   function bindEvents() {
     $('#brandHome').addEventListener('click', () => showLanding());
     $('#backHome').addEventListener('click', () => showLanding());
     $('#leaveRoomButton').addEventListener('click', () => showLanding());
-    $('#themeToggle').addEventListener('click', () => setTheme(state.theme === 'dark' ? 'light' : 'dark'));
+    $('#themeToggle').addEventListener('click', () => $('#settingsModal').classList.add('open'));
+    $('#closeSettings').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
+    $('#settingsModal').addEventListener('click', event => { if (event.target === $('#settingsModal')) $('#settingsModal').classList.remove('open'); });
+    $$('[data-theme-choice]').forEach(button => button.addEventListener('click', () => setTheme(button.dataset.themeChoice)));
+    const fab = $('#runFab');
+    const closeFab = () => { fab.classList.remove('open'); fab.setAttribute('aria-expanded','false'); $('#fabMenu').classList.remove('open'); $('#fabScrim').classList.remove('open'); };
+    fab.addEventListener('click', () => { const open = !fab.classList.contains('open'); fab.classList.toggle('open', open); fab.setAttribute('aria-expanded', String(open)); $('#fabMenu').classList.toggle('open', open); $('#fabScrim').classList.toggle('open', open); });
+    $('#fabScrim').addEventListener('click', closeFab);
+    // Move the existing join form into a dedicated modal so the landing card has no duplicate join section.
+    $('#joinModalContent').appendChild($('#joinRoomForm'));
+    const closeJoinModal = () => $('#joinModal').classList.remove('open');
+    $('#closeJoinModal').addEventListener('click', closeJoinModal);
+    $('#joinModal').addEventListener('click', event => { if (event.target === $('#joinModal')) closeJoinModal(); });
+    $('#joinModalSubmit').addEventListener('click', () => $('#joinRoomForm').requestSubmit());
+    $$('[data-fab-action]').forEach(button => button.addEventListener('click', () => { closeFab(); const action = button.dataset.fabAction; if (action === 'create') { $('#createRoomForm').requestSubmit(); } else { $('#joinModal').classList.add('open'); setTimeout(() => $('#joinCode').focus(), 80); } }));
     $('#createRoomForm').addEventListener('submit', handleCreate);
     $('#joinRoomForm').addEventListener('submit', handleJoin);
     $('#displayName').value = state.name;
@@ -1262,7 +1370,7 @@
     $('#shareRoomButton').addEventListener('click', openShareModal);
     $('#closeShareModal').addEventListener('click', () => $('#shareModal').classList.remove('open'));
     $('#shareModal').addEventListener('click', event => { if (event.target === $('#shareModal')) $('#shareModal').classList.remove('open'); });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') { $('#shareModal').classList.remove('open'); $('#manualUploadModal').classList.remove('open'); state.pendingManualFile = null; } });
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') { $('#shareModal').classList.remove('open'); $('#manualUploadModal').classList.remove('open'); $('#settingsModal').classList.remove('open'); state.pendingManualFile = null; } });
     $('#copyCodeButton').addEventListener('click', copyCode);
     $('#copyInviteButton').addEventListener('click', copyInvite);
     $('#copyRoomPackButton').addEventListener('click', copyRoomPack);
@@ -1288,7 +1396,7 @@
       if (!button) return;
       const name = $('#displayName').value.trim().slice(0, 32);
       if (!name) { status('Add a display name first, then pick a room to rejoin.', 'error'); $('#displayName').focus(); return; }
-      state.name = name; store.set('run_display_name', name);
+      state.name = name; store.set('run_display_name', state.name);
       $('#joinCode').value = button.dataset.recentCode;
       $('#joinRoomForm').requestSubmit();
     });
